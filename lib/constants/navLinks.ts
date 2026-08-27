@@ -1,4 +1,4 @@
-const NAV_LINKS = [
+export const NAV_LINKS = [
   { href: "/boutique", label: "Boutique" },
   { href: "/boutique?category=bonnets", label: "Bonnets" },
   { href: "/boutique?category=casquettes", label: "Casquettes" },

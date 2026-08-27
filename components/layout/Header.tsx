@@ -3,6 +3,7 @@ import React from "react";
 import { SearchIcon, UserIcon } from "../icons";
 import CartIcon from "../CartIcon";
 import MobileMenuButton from "../mobile/MobileMenuButton";
+import { NAV_LINKS } from "@/lib/constants/navLinks";
 
 export default function Header() {
   return (
