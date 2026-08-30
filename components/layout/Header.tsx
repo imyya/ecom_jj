@@ -13,7 +13,7 @@ export default function Header() {
           href="/"
           className="text-xl font-semibold tracking-tight text-neutral-900"
         >
-          JIIRO
+          JI<span className="text-primary">I</span>RO
         </Link>
 
         <nav className="hidden md:flex md:items-center md:gap-8">
