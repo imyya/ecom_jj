@@ -5,10 +5,10 @@ import { ArrowRight } from "lucide-react";
 
 export default function BestSellers() {
   return (
-    <section className="w-full pt-10 p-20 flex flex-col gap-4 mb-10 bg-stne-50 ">
+    <section className="w-full pt-10 p-20 flex flex-col gap-4 mb-10">
       <div className="flex justify-between ">
         <p className="font-bold text-slate-900 text-2xl">Best Sellers</p>
-        <div className="flex items-center gap-3 font-semibold" >
+        <div className="flex items-center gap-3 font-semibold cursor-pointer hover:text-primary-hover transition" >
           <p className="text-sm text-primary">Voir tous les produits</p>
           <ArrowRight className="size-3 text-primary" />
         </div>
