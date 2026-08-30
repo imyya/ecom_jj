@@ -1,40 +1,61 @@
 "use client";
-import Image, { StaticImageData } from "next/image";
-import React from "react";
 
-type bestSeller = {
+import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+
+type BestSeller = {
+  slug: string; // ← à ajouter dans bestSellers.ts
   name: string;
   src: string | StaticImageData;
   price: string;
 };
-export default function BestSellerCard(props: bestSeller) {
+
+export default function BestSellerCard({ slug, name, src, price }: BestSeller) {
+  const handleAddToCart = () => {
+    // TODO: logique panier
+  };
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="relative">
+    <article className="group relative flex flex-col gap-2">
+      {/* image */}
+      <div className="relative overflow-hidden rounded-lg">
         <Image
-          //fill
-          alt=""
-          sizes="(max-width:768px) 100vw, 33vw"
+          src={src}
+          alt={name}
           //width={100}
-          //height={400}
-          src={props.src}
-          className="object-cover w-full"
-        ></Image>
+          // height={400}
+          sizes="(max-width: 768px) 100vw, 25vw"
+          className="w-full h- object-cover transition duration-300 group-hover:scale-105"
+        />
+
+        {/* bouton panier — au-dessus du lien étendu grâce à z-10 */}
         <button
           type="button"
-          onClick={() => {
-            /* ... */
-          }}
-          className="absolute top-3 left-3 z-10 bg-white  px-3 py-1
-                 text-sm font-medium  hover:bg-white/90 transition hover:cursor-pointer"
+          onClick={handleAddToCart}
+          aria-label={`Ajouter ${name} au panier`}
+          className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-sm
+                     bg-white px-3 py-1 text-sm font-medium 
+                     transition hover:bg-white/90"
         >
-          + Ajouter
+          <Plus className="size-4" />
+          Ajouter
         </button>
       </div>
-      <div className="flex flex-col ">
-        <p className="font-bold text-slate-900 text-lg">{props.name}</p>
-        <p className="text-sm font-semibold text-primary">{props.price}f</p>
+
+      {/* infos */}
+      <div className="flex flex-col">
+        <h3 className="font-bold text-slate-900 text-lg">
+          <Link
+            href={`/boutique/${slug}`}
+            className="after:absolute after:inset-0 after:content-['']
+                       hover:text-primary transition"
+          >
+            {name}
+          </Link>
+        </h3>
+        <p className="text-sm font-semibold text-primary">{price} FCFA</p>
       </div>
-    </div>
+    </article>
   );
 }
