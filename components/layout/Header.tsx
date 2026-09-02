@@ -11,7 +11,7 @@ export default function Header() {
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
-          className="text-xl font-semibold tracking-tight text-neutral-900"
+          className="text-2xl font-semibold tracking-tight text-neutral-900"
         >
           JI<span className="text-primary">I</span>RO
         </Link>

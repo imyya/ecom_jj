@@ -54,7 +54,7 @@ export default function BestSellerCard({ slug, name, src, price }: BestSeller) {
             {name}
           </Link>
         </h3>
-        <p className="text-sm font-semibold text-primary">{price} FCFA</p>
+        <p className="text-sm font-medium text-primary">{price} FCFA</p>
       </div>
     </article>
   );

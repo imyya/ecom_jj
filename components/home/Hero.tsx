@@ -8,7 +8,7 @@ export default function Hero() {
   return (
     <section className="animate-in fade-in slide-in-from-bottom-4 duration-900 flex justify-between  h-1/3 ">
       <div className="flex flex-col pl-20  justify-center flex-1 gap-5">
-          <h1 className="text-6xl font-bold font-heading">
+          <h1 className="text-5xl font-bold font-heading">
             Découvrez notre stock de
             <br />
             plus de 13&nbsp;000 chapeaux,
