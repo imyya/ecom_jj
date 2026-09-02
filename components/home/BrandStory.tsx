@@ -30,7 +30,7 @@ export default function BrandStory() {
           </p>
           <Link
             href="/boutique"
-            className="mt-6 inline-block border border-neutral-900 px-6 py-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
+            className="mt-6 inline-block border border-neutral-900 px-6 py-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-primary hover:text-white"
           >
             Découvrir la collection
           </Link>
