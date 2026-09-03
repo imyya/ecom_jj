@@ -7,7 +7,7 @@ import brandStory from "@/public/images/story-image.png"
  */
 export default function BrandStory() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:py-24">
+    <section className="mx-aut max-w-6xl px-4 ml-14 py-16 sm:py-24 bg-red-300">
       <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-16">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100">
           <Image

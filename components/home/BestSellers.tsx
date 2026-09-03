@@ -27,7 +27,7 @@ const item: Variants = {
 
 export default function BestSellers() {
   return (
-    <section className="w-full pt-10 p-20 flex flex-col gap-4 mb-10">
+    <section className="w-full pt-10 p-20 flex flex-col gap-4 mb-10 bg-amber-200">
       <div className="flex justify-between ">
         <p className="font-bold text-slate-900 text-2xl">Best Sellers</p>
         <Link

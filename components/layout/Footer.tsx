@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Facebook, Instagram } from "lucide-react";
-import { SiTiktok, SiWhatsapp } from "react-icons/si";
+//import { Facebook, Instagram } from "lucide-react";
+import {SiInstagram, SiFacebook, SiTiktok, SiWhatsapp } from "react-icons/si";
 
 const FOOTER_LINKS = {
   boutique: [
@@ -24,8 +24,8 @@ const FOOTER_LINKS = {
 
 // TODO: remplacer les liens "#" par les vrais comptes Jiiro une fois fournis (§34 CDC)
 const SOCIAL_LINKS = [
-  { href: "https://instagram.com/jiiro", label: "Instagram", Icon: Instagram },
-  { href: "https://facebook.com/jiiro", label: "Facebook", Icon: Facebook },
+  { href: "https://instagram.com/jiiro", label: "Instagram", Icon: SiInstagram },
+  { href: "https://facebook.com/jiiro", label: "Facebook", Icon: SiFacebook },
   { href: "https://tiktok.com/@jiiro", label: "TikTok", Icon: SiTiktok },
   { href: "https://wa.me/221XXXXXXXXX", label: "WhatsApp", Icon: SiWhatsapp },
 ];
