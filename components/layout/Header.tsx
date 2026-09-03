@@ -4,11 +4,12 @@ import { SearchIcon, UserIcon } from "../icons";
 import CartIcon from "../CartIcon";
 import MobileMenuButton from "../mobile/MobileMenuButton";
 import { NAV_LINKS } from "@/lib/constants/navLinks";
+import Container from "../ui/Container";
 
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
-      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+      <Container className="flex h-16 items-center justify-between">
         <Link
           href="/"
           className="text-2xl font-semibold tracking-tight text-neutral-900"
@@ -46,7 +47,7 @@ export default function Header() {
           <CartIcon />
           <MobileMenuButton links={NAV_LINKS} />
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

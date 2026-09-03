@@ -5,6 +5,7 @@ import BestSellerCard from "../BestSellerCard";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Variants, motion } from "motion/react";
+import Container from "../ui/Container";
 
 const container: Variants = {
   hidden: {},
@@ -27,8 +28,10 @@ const item: Variants = {
 
 export default function BestSellers() {
   return (
-    <section className="w-full pt-10 p-20 flex flex-col gap-4 mb-10 bg-amber-200">
-      <div className="flex justify-between ">
+    <section className="">
+      <Container className="mx-auto max-w-7xl px-6 lg:px-12 py-12 lg:py-16 flex flex-col gap-4">
+
+      <div className="flex justify-between">
         <p className="font-bold text-slate-900 text-2xl">Best Sellers</p>
         <Link
           href="/boutique"
@@ -51,6 +54,7 @@ export default function BestSellers() {
           </motion.div>
         ))}
       </motion.div>
+      </Container>
     </section>
   );
 }

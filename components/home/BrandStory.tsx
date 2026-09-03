@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import brandStory from "@/public/images/story-image.png"
+import brandStory from "@/public/images/story-image.png";
+import Container from "../ui/Container";
 /**
  * Section "présentation de la marque" de l'accueil (§5.1 du CDC).
  * Server Component pur — aucune interactivité, donc pas de "use client".
  */
 export default function BrandStory() {
   return (
-    <section className="mx-aut max-w-6xl px-4 ml-14 py-16 sm:py-24 bg-red-300">
-      <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-16">
+    <section className="">
+      <Container className="grid grid-cols-1 items-center gap-8 py-16 sm:py-24 md:grid-cols-2 md:gap-16">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100">
           <Image
             src={brandStory}
@@ -35,7 +36,7 @@ export default function BrandStory() {
             Découvrir la collection
           </Link>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

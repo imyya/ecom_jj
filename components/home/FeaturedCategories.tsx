@@ -3,6 +3,7 @@ import { categories } from '@/lib/constants/categories'
 import React from 'react'
 import CategoryCard from '../CategoryCard'
 import {motion, Variants} from "motion/react"
+import Container from '../ui/Container'
 
 const container = {
   hidden: {},
@@ -23,8 +24,9 @@ const item:Variants = {
 
 export default function FeaturedCategories() {
   return (
-    <section className='w-full h flex flex-col gap-4 pt-10 p-20 bg-stone-50'>
-      
+    <section className=' bg-stone-50'>
+      <Container className='flex flex-col gap-4 py-12 lg:py-16'>
+
       <div className='flex flex-col justify-between '>
         <p className='font-bold text-slate-900 text-2xl animate-in fade-in slide-in-from-bottom-7 duration-700'>Nos Catégories</p>
       </div>
@@ -46,6 +48,8 @@ export default function FeaturedCategories() {
           </motion.div>
         ))}
         </motion.div>
+      </Container>
+      
 
 
     </section>

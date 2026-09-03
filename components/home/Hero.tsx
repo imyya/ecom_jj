@@ -3,11 +3,14 @@ import Image from "next/image";
 import heroImage from "@/public/images/hero-image-pane.png";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import Container from "../ui/Container";
 
 export default function Hero() {
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-4 duration-900 flex justify-between  h-1/3 ">
-      <div className="flex flex-col pl-20  justify-center flex-1 gap-5">
+    <section className="animate-in fade-in slide-in-from-bottom-4 duration-900   h-1/3 ">
+      <Container className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-12 py-12 lg:py-0">
+
+      <div className="flex flex-col justify-center flex-1 gap-5">
           <h1 className="text-5xl font-bold font-heading">
             Découvrez notre stock de
             <br />
@@ -38,6 +41,7 @@ export default function Hero() {
         priority
         className="h-full w-xl object-cover"
       />
+      </Container>
     </section>
   );
 }
