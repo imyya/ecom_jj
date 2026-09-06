@@ -1,0 +1,334 @@
+// ============================================================
+// Schéma Prisma — Jiiro E-commerce
+// Basé directement sur les entités listées au §32 du cahier
+// des charges. À affiner au fur et à mesure du développement.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+ // url      = env("DATABASE_URL")
+}
+
+// ---------- ADMINISTRATEURS (§28 rôles) ----------
+
+enum AdminRole {
+  SUPER_ADMIN
+  GESTIONNAIRE
+  COMMERCIAL
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      AdminRole @default(GESTIONNAIRE)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ---------- CLIENTS (§17) ----------
+
+model Customer {
+  id        String    @id @default(cuid())
+  email     String?   @unique
+  phone     String    @unique
+  firstName String
+  lastName  String
+  password  String? // null si le client a commandé en invité
+  isGuest   Boolean   @default(false)
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+  label      String? // ex: "Domicile", "Bureau"
+  quartier   String
+  ville      String
+  details    String? // précisions livraison
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ---------- CATALOGUE (§5, §6, §7) ----------
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?
+  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+}
+
+model Product {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  description    String?
+  category       Category         @relation(fields: [categoryId], references: [id])
+  categoryId     String
+  basePrice      Int // en FCFA, prix normal
+  promoPrice     Int? // prix promotionnel, affiché barré à côté du prix normal
+  isActive       Boolean          @default(true)
+  isFeatured     Boolean          @default(false) // "mis en avant"
+  isNew          Boolean          @default(false) // badge "Nouveau"
+  isBestSeller   Boolean          @default(false) // badge "Meilleure vente"
+  seoTitle       String?
+  seoDescription String?
+  images         ProductImage[]
+  variants       ProductVariant[]
+  reviews        Review[]
+  orderItems     OrderItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([categoryId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  url       String
+  altText   String?
+  position  Int     @default(0)
+}
+
+// Chaque combinaison couleur/taille (§7) = une variante avec son propre SKU et son propre stock
+model ProductVariant {
+  id             String          @id @default(cuid())
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId      String
+  sku            String          @unique
+  color          String?
+  size           String?
+  priceOverride  Int? // si le prix diffère du produit parent
+  stock          Int             @default(0) // stock disponible
+  reservedStock  Int             @default(0) // réservé (commande en cours de paiement)
+  minStock       Int             @default(3) // seuil d'alerte stock faible (§11)
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
+
+  @@index([productId])
+}
+
+enum StockMovementType {
+  IN
+  OUT
+}
+
+// Historique des mouvements de stock (§12)
+model StockMovement {
+  id        String            @id @default(cuid())
+  variant   ProductVariant    @relation(fields: [variantId], references: [id])
+  variantId String
+  type      StockMovementType
+  quantity  Int
+  reason    String // "Réception", "Vente", "Réapprovisionnement", "Ajustement"...
+  createdAt DateTime          @default(now())
+
+  @@index([variantId])
+}
+
+// ---------- AVIS CLIENTS (§36) ----------
+
+model Review {
+  id         String   @id @default(cuid())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+  rating     Int // 1 à 5
+  comment    String?
+  photoUrl   String?
+  isApproved Boolean  @default(false) // modération admin
+  createdAt  DateTime @default(now())
+}
+
+// ---------- LIVRAISON (§9 étape 3, §33) ----------
+
+model DeliveryZone {
+  id       String  @id @default(cuid())
+  name     String // "Dakar", "Pikine", "Guédiawaye", "Rufisque"...
+  fee      Int // configurable depuis l'admin
+  isActive Boolean @default(true)
+  orders   Order[]
+}
+
+// ---------- COMMANDES (§9, §10, §18) ----------
+
+enum OrderStatus {
+  NOUVELLE_COMMANDE
+  PAIEMENT_EN_ATTENTE
+  PAIEMENT_CONFIRME
+  EN_PREPARATION
+  PRETE_A_EXPEDIER
+  EN_LIVRAISON
+  LIVREE
+  ANNULEE
+  ECHEC_LIVRAISON
+  RETOURNEE
+}
+
+model Order {
+  id               String               @id @default(cuid())
+  orderNumber      String               @unique // ex: JIIRO-2026-000125
+  customer         Customer?            @relation(fields: [customerId], references: [id])
+  customerId       String?
+  guestFirstName   String?
+  guestLastName    String?
+  guestPhone       String?
+  guestEmail       String?
+  deliveryZone     DeliveryZone         @relation(fields: [deliveryZoneId], references: [id])
+  deliveryZoneId   String
+  deliveryAddress  String
+  deliveryQuartier String
+  deliveryNotes    String?
+  status           OrderStatus          @default(NOUVELLE_COMMANDE)
+  statusHistory    OrderStatusHistory[]
+  items            OrderItem[]
+  payment          Payment?
+  couponCode       String?
+  subtotal         Int
+  deliveryFee      Int
+  discount         Int                  @default(0)
+  total            Int
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  status    OrderStatus
+  note      String?
+  changedAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id           String         @id @default(cuid())
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String
+  product      Product        @relation(fields: [productId], references: [id])
+  productId    String
+  variant      ProductVariant @relation(fields: [variantId], references: [id])
+  variantId    String
+  productName  String // snapshot au moment de la commande
+  variantLabel String // ex: "Noir / M"
+  sku          String
+  unitPrice    Int
+  quantity     Int
+  lineTotal    Int
+}
+
+// ---------- PAIEMENT (§9 étape 4) ----------
+
+enum PaymentMethod {
+  WAVE
+  ORANGE_MONEY
+  CASH_ON_DELIVERY
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  order             Order         @relation(fields: [orderId], references: [id])
+  orderId           String        @unique
+  method            PaymentMethod
+  status            PaymentStatus @default(PENDING)
+  amount            Int
+  providerReference String? // référence renvoyée par Wave/Orange Money/agrégateur
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+}
+
+// ---------- PROMOTIONS & COUPONS (§15, §16) ----------
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model Promotion {
+  id         String       @id @default(cuid())
+  name       String
+  type       DiscountType
+  value      Int
+  productId  String?
+  categoryId String?
+  startDate  DateTime
+  endDate    DateTime
+  isActive   Boolean      @default(true)
+}
+
+model Coupon {
+  id        String       @id @default(cuid())
+  code      String       @unique // ex: JIIRO10
+  type      DiscountType
+  value     Int
+  startDate DateTime
+  endDate   DateTime
+  maxUses   Int?
+  usedCount Int          @default(0)
+  minAmount Int?
+  isActive  Boolean      @default(true)
+}
+
+// ---------- NOTIFICATIONS (§19) ----------
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+model Notification {
+  id            String              @id @default(cuid())
+  recipientType String // "CUSTOMER" | "ADMIN"
+  channel       NotificationChannel
+  message       String
+  isSent        Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+}
+
+// ---------- PARAMÈTRES DU SITE (§34) ----------
+
+model SiteSettings {
+  id                 String  @id @default(cuid())
+  logoUrl            String?
+  whatsappNumber     String?
+  phone              String?
+  email              String?
+  address            String?
+  instagramUrl       String?
+  facebookUrl        String?
+  tiktokUrl          String?
+  currency           String  @default("FCFA")
+  deliveryConditions String?
+  returnPolicy       String?
+  hours              String?
+}
