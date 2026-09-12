@@ -1,7 +1,7 @@
 import "server-only"
 import prisma from "@/lib/prisma"
 
-export const listProducts=async(params?:{categorySlug?:string})=>{
+export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number})=>{
     const products = await prisma.product.findMany({
         where:{
             isActive:true,
@@ -13,6 +13,11 @@ export const listProducts=async(params?:{categorySlug?:string})=>{
                 take:1
             },
             category:true
+        },
+        skip:params?.pageNumber ? (params?.pageNumber-1) * 5 : 0,
+        take:5,
+        orderBy:{
+            createdAt:"desc"
         }
     })
     return products
