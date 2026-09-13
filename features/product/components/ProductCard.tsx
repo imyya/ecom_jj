@@ -1,9 +1,11 @@
+"use client";
+
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import React from "react";
 import { ProductListItem } from "../queries";
 import { formatPrice } from "@/lib/utils";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Plus } from "lucide-react";
 
 const ProductCard = ({ product }: { product: ProductListItem }) => {
   const handleAddToCart = () => {
@@ -13,7 +15,7 @@ const ProductCard = ({ product }: { product: ProductListItem }) => {
     <article className="group relative flex flex-col gap-2">
       {/* image */}
       {/* <div className="relative overflow-hidden rounded-lg"> */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
+      <div className="relative group aspect-square overflow-hidden rounded-lg bg-neutral-100">
         {product.images[0]?.url ? (
           <Image
             src={product.images[0].url}
@@ -27,6 +29,15 @@ const ProductCard = ({ product }: { product: ProductListItem }) => {
             <ImageOff className="size-8 text-neutral-300" />
           </div>
         )}
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          aria-label={`Ajouter ${product.name} au panier`}
+          className="hidden md:group-hover:flex absolute top-3 right-2 z-10  items-center gap-1 rounded-sm bg-white px-3 py-1 text-sm font-medium transition hover:bg-white/90 cursor-pointer"
+        >
+          <Plus className="size-4" />
+          Ajouter
+        </button>
       </div>
 
       {/*         

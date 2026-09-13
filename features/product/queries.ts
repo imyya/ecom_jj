@@ -1,12 +1,20 @@
 import "server-only"
 import prisma from "@/lib/prisma"
 
+function buildWhere(params?:{categorySlug?:string}){
+    return {
+        isActive: true,
+        ...(params?.categorySlug? {category:{slug:params.categorySlug}}:{})
+    }
+}
 export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number})=>{
     const products = await prisma.product.findMany({
-        where:{
-            isActive:true,
-            ...(params?.categorySlug? {category:{slug:params.categorySlug}} :{})// le spread ... spread un objet dans lobjet englobant which is lobject where ici et si pas de categ-slug param un objet vide sera spread dans where{}
-        },
+        where: buildWhere(params)
+      //  {
+           // isActive:true,
+           // ...(params?.categorySlug? {category:{slug:params.categorySlug}} :{})// le spread ... spread un objet dans lobjet englobant which is lobject where ici et si pas de categ-slug param un objet vide sera spread dans where{}
+       // }
+       ,
         include:{
             images:{
                 orderBy:{position:"asc"},
@@ -21,6 +29,31 @@ export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number
         }
     })
     return products
+}
+
+export const countTotalProducts=async(params?:{categorySlug?:string})=>{
+    return await prisma.product.count({
+
+        where:buildWhere(params)
+    }
+    )
+
+}
+
+export const getProductBySlug = async(params:{slug:string})=>{
+    return await prisma.product.findFirst({
+        where:{
+            slug:params.slug
+        },
+        include:{
+            images:{
+                orderBy:{position:"asc"},
+                
+            },
+            category:true,
+            variant:true
+        }
+    })
 }
 
 export type ProductListItem = Awaited<ReturnType<typeof listProducts>>[number];
