@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
+import ProductActions from "@/features/product/components/ProductActions";
 
 const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
   const { slug } = await params;
@@ -83,33 +84,8 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
             <p className="leading-relaxed text-neutral-600">{product.description}</p>
           )}
 
-          {<product className="variants"></product>.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-slate-900">Choisir une option</p>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((v) => {
-                  const available = v.stock - v.reservedStock > 0;
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      disabled={!available}
-                      className="rounded-sm border border-neutral-300 px-4 py-2 text-sm font-medium text-slate-900 transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {[v.color, v.size].filter(Boolean).join(" / ")}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <button
-            type="button"
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-primary px-6 font-bold text-slate-50 transition hover:bg-primary-hover sm:w-fit"
-          >
-            Commander via WhatsApp
-          </button>
+          <ProductActions product={product}/>
+         
         </div>
       </div>
     </Container>

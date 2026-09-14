@@ -41,7 +41,7 @@ export const countTotalProducts=async(params?:{categorySlug?:string})=>{
 }
 
 export const getProductBySlug = async(params:{slug:string})=>{
-    return await prisma.product.findFirst({
+    return await prisma.product.findUnique({
         where:{
             slug:params.slug
         },
@@ -51,10 +51,10 @@ export const getProductBySlug = async(params:{slug:string})=>{
                 
             },
             category:true,
-            variant:true
+            variants:true
         }
     })
 }
 
 export type ProductListItem = Awaited<ReturnType<typeof listProducts>>[number];
-
+export type ProductBySlug = Awaited<ReturnType<typeof getProductBySlug>>
