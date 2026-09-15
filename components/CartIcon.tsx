@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { ShoppingBagIcon } from "./icons";
 import { useCartStore } from "@/features/cart/store";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -9,9 +9,10 @@ import { ImageOff } from "lucide-react";
 import Image from "next/image";
 
 export default function CartIcon() {
+  const [open,setOpen]=useState(false)
   const items = useCartStore((state) => state.items);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const subtotal = items.reduce((sum, i) => sum + i.unitPrice + i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
   // const itemCount = useCartStore((state)=>state.items.reduce((sum,i)=>sum+i.quantity,0))
   const badge = itemCount > 0 && (
@@ -33,7 +34,7 @@ export default function CartIcon() {
 
       {/* mobile*/}
 
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger
           aria-label="Panier"
           className="relative text-neutral-600 hover:text-neutral-900 md:hidden"
@@ -80,9 +81,10 @@ export default function CartIcon() {
             </div>
           )}
 
-              <DialogFooter>
+              <DialogFooter className="bg-slate-50">
             <Link
-              href="/panier"
+              href="/cart"
+              onClick={()=>setOpen(false)}
               className="inline-flex h-11 w-full items-center justify-center rounded-sm bg-primary font-bold text-slate-50 transition hover:bg-primary-hover"
             >
               Voir le panier

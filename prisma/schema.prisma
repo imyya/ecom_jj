@@ -194,10 +194,10 @@ model Order {
   guestLastName    String?
   guestPhone       String?
   guestEmail       String?
-  deliveryZone     DeliveryZone         @relation(fields: [deliveryZoneId], references: [id])
-  deliveryZoneId   String
-  deliveryAddress  String
-  deliveryQuartier String
+  deliveryZone     DeliveryZone?         @relation(fields: [deliveryZoneId], references: [id])
+  deliveryZoneId   String?
+  deliveryAddress  String?
+  deliveryQuartier String?
   deliveryNotes    String?
   status           OrderStatus          @default(NOUVELLE_COMMANDE)
   statusHistory    OrderStatusHistory[]
@@ -205,7 +205,7 @@ model Order {
   payment          Payment?
   couponCode       String?
   subtotal         Int
-  deliveryFee      Int
+  deliveryFee      Int                  @default(0)
   discount         Int                  @default(0)
   total            Int
   createdAt        DateTime             @default(now())

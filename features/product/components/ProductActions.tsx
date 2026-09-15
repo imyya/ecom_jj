@@ -66,9 +66,9 @@ const ProductActions = ({product}:{product:ProductBySlug}) => {
             Ajouter au panier
           </button>
             <button
-           // disabled={selectedVariantId===''}
+            disabled={selectedVariantId===''}
             type="button"
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-green-700 px-6 font-bold text-slate-50 transition hover:bg-green-900 cursor-pointer sm:w-fit"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-green-700 px-6 font-bold text-slate-50 transition hover:bg-green-900 cursor-pointer sm:w-fit disabled:cursor-not-allowed disabled:opacity-40"
           >
             Commander via WhatsApp <SiWhatsapp/>
           </button>
