@@ -7,6 +7,22 @@ import { formatPrice } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
 import ProductActions from "@/features/product/components/ProductActions";
 
+export async function generateMetadata({ params }: PageProps<"/boutique/[slug]">) {
+  const { slug } = await params;
+  const product = await getProductBySlug({ slug });
+  if (!product) return {};
+
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {    
+      title: product.name,
+      description: product.description ?? undefined,
+      images: product.images[0]?.url ? [product.images[0].url] : [],
+    },
+  };
+}
+
 const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
   const { slug } = await params;
   const product = await getProductBySlug({ slug });

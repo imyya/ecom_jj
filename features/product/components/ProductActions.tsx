@@ -4,15 +4,39 @@ import { ProductBySlug } from '../queries';
 import {SiWhatsapp } from "react-icons/si";
 import { useCartStore } from '@/features/cart/store';
 import { cn } from '@/lib/utils';
+import createOrder from '@/features/order/actions';
 
 const ProductActions = ({product}:{product:ProductBySlug}) => {
-  const  [selectedVariantId, setSelectedVariantId] =useState('')
+  const [selectedVariantId, setSelectedVariantId] =useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const addItem = useCartStore((state)=>state.addItem);
   const selectVariant = (variantId:string)=>{
     if(!variantId) return
     setSelectedVariantId(variantId)
   }
   
+  const orderViaWhatsapp = async () => {
+    if(!product) return
+    setError(null)
+    setIsSubmitting(true)
+    const result = await createOrder({items:[{productId:product.id, variantId:selectedVariantId, quantity:1}]})
+
+    if(!result.ok)
+    {
+        setIsSubmitting(false)
+        setError(result.message ?? 'Une erreur est survenue')
+        return
+    }
+
+    const variant = product.variants.find((v)=>v.id===selectedVariantId)
+    const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/boutique/${product.slug}`
+    const variantLabel = variant ? [variant.color, variant.size].filter(Boolean).join(" / "):""
+    const message = `${productUrl}\n\n\nBonjour, je souhaite commander :\n${product.name} (${variantLabel})\nCommande n°${result.data!.orderNumber}`;
+    window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+
+  }
 
     return (
         <div className='flex flex-col gap-10'>
@@ -67,11 +91,13 @@ const ProductActions = ({product}:{product:ProductBySlug}) => {
           </button>
             <button
             disabled={selectedVariantId===''}
+            onClick={orderViaWhatsapp}
             type="button"
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-green-700 px-6 font-bold text-slate-50 transition hover:bg-green-900 cursor-pointer sm:w-fit disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Commander via WhatsApp <SiWhatsapp/>
+           { isSubmitting? "Creation de la commande" :"Commander via WhatsApp" }<SiWhatsapp/>
           </button>
+          {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
 

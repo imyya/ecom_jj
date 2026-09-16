@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "Jiiro — Chapeaux, bonnets et casquettes",
   description:
     "Plus de 13 000 chapeaux, bonnets et casquettes. Livraison rapide, prix à partir de 2 500 FCFA.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL!)
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

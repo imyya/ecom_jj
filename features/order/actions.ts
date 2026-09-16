@@ -24,61 +24,84 @@ const parsed = CreateOrderSchema.safeParse(order)
 if (!parsed.success) {
   return { ok: false, errors: parsed.error.flatten() };
 }
-let subTotal = 0
-const customer = await prisma.customer.findUnique(
-    {
+
+try{
+
+    const result = await prisma.$transaction(async(tx)=>{
+        let subTotal = 0
+    const customer = order.customer?.phone ? await tx.customer.findUnique(
+        {
+            where:{
+                phone:order.customer?.phone 
+            }
+        } 
+    ) : null
+    
+    const items = order.items
+    const orderItems=[]
+    for(const i of items ){
+    const item = await tx.productVariant.findUnique({
         where:{
-            phone:order.customer?.phone 
+            id: i.variantId,
+        },
+        include:{
+            product:true
         }
-    }
-)
-
-const items = order.items
-const orderItems=[]
-for(const i of items ){
-const item = await prisma.productVariant.findUnique({
-    where:{
-        id: i.variantId,
-    },
-    include:{
-        product:true
-    }
-})
-if(item){
-    if(item.stock - item.reservedStock < i.quantity){
-        return {
-            ok:false,
-            data:[],
-            message:"Item not enough"
-        }
-    }
-    const unitPrice = item.priceOverride ?? item.product.promoPrice ?? item.product.basePrice;
-    subTotal+= unitPrice * i.quantity
-    orderItems.push({
-        productId: item.productId,
-        variantId: item.id,
-        productName: item.product.name,
-        variantLabeL: [item.color,item.size].filter(Boolean).join("/"),
-        sku:item.sku,
-        unitPrice,
-        quantity: i.quantity,
-        lineTotal: unitPrice * i.quantity
     })
-    item.reservedStock++
-}}
-
-const newOrder = await prisma.order.create(
-   { data:{
-        deliveryAddress: order.deliveryAddress ?? '',
-        deliveryZoneId:order.deliveryZoneId,
-        deliveryQuartier: order.deliveryQuartier ?? '',
-        customerId:customer?.id ?? null,
-        subtotal: subTotal,
-        total:subTotal,
-        orderNumber: ll,
-        items:{create:orderItems}
+    if(!item)  {
+        throw new Error(`Item not found`);
+    } 
+    
+        if(item.stock - item.reservedStock < i.quantity){
+           throw new Error(`Stock insuffisant pour ${item.product.name}`); // on a besoin de throw pour que la transactionfasse un rollback
+        }
+        const unitPrice = item.priceOverride ?? item.product.promoPrice ?? item.product.basePrice;
+        subTotal+= unitPrice * i.quantity
+        orderItems.push({
+            productId: item.productId,
+            variantId: item.id,
+            productName: item.product.name,
+            variantLabel: [item.color,item.size].filter(Boolean).join("/"),
+            sku:item.sku,
+            unitPrice,
+            quantity: i.quantity,
+            lineTotal: unitPrice * i.quantity
+        })
+        await tx.productVariant.update({
+            where:{id: i.variantId},
+            data:{reservedStock:{increment: i.quantity}}
+        })
+    
+    
+    }
+      const orderNumber = await generateOrderNumber(tx);
+    
+    return await tx.order.create(
+       { data:{
+            deliveryAddress: order.deliveryAddress ,
+            deliveryZoneId:order.deliveryZoneId  ,
+            deliveryQuartier: order.deliveryQuartier ,
+            customerId:customer?.id ?? null,
+            subtotal: subTotal,
+            total:subTotal,
+            orderNumber:orderNumber ,
+            items:{create:orderItems}
+        }
+    })
+    })
+    return {
+        ok:true,
+        data:result,
+        message:"Order added successfully"
+    }
+}catch(err){
+    return {
+        ok:false,
+        message: err instanceof Error ? err.message : "error occured"
     }
 }
-)
+
+
 }
 
+export default createOrder
