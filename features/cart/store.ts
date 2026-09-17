@@ -8,6 +8,7 @@ export type CartItem = {
   productName: string;
   variantLabel: string; // ex: "Noir / M"
   sku: string;
+  slug:string;
   unitPrice: number;
   quantity: number;
   imageUrl?: string;

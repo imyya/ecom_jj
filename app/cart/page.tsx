@@ -7,61 +7,53 @@ import { useCartStore } from "@/features/cart/store";
 import { formatPrice } from "@/lib/utils";
 import { useState } from "react";
 import createOrder from "@/features/order/actions";
+import { SiWhatsapp } from "react-icons/si";
 
 export default function PanierPage() {
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const clearCart = useCartStore((state)=>state.clearCart)
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
-  const placeOrder = async () => {
-    if(items.length===0) return
-    setError(null)
-    setIsSubmitting(true)
+  const placeOrderViaWhatsapp = async () => {
+    if (items.length === 0) return;
+    setError(null);
+    setIsSubmitting(true);
     console.log("les itmes", items);
-//     imageUrl
-// : 
-// "/images/category-card-snapback.png"
-// productId
-// : 
-// "cmtygioci000tg0opkbhg6rp0"
-// productName
-// : 
-// "Snapback Flat Visor"
-// quantity
-// : 
-// 2
-// sku
-// : 
-// "SNP-FLT-WHT"
-// unitPrice
-// : 
-// 6900
-// variantId
-// : 
-// "cmtygiocl000wg0opvaehkzvc"
-// variantLabel
-// : 
-// "Blanc/Unique"
-    const orderItems = items.map((i)=>{
-       return{ 
+
+    const orderItems = items.map((i) => {
+      return {
         productId: i.productId,
         variantId: i.variantId,
-        quantity: i.quantity
-    }
-    })
-   console.log('order items',orderItems)
-  //  const result = await createOrder({items:orderItems})
-    //     if(!result.ok)
-    // {
-    //     setIsSubmitting(false)
-    //     setError(result.message ?? 'Une erreur est survenue')
-    //     return
-    // }
+        quantity: i.quantity,
+      };
+    });
+    console.log("order items", orderItems);
+ 
 
-    
+     const result = await createOrder({items:orderItems})
+        if(!result.ok)
+    {
+        setIsSubmitting(false)
+        setError(result.message ?? 'Une erreur est survenue')
+        return
+    }
+
+    let message = "Bonjour, je souhaite commander :\n";
+    for (const i of items) {
+      //const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/boutique/${i.slug}`
+      const price = i.unitPrice * i.quantity;
+      message = message + `\n${i.productName} (${i.variantLabel}) x${i.quantity} sous-total: ${price} FCFA`;
+    }
+    message = message + `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
+    console.log(message);
+    clearCart()
+   
+    window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
 
   };
 
@@ -174,12 +166,31 @@ export default function PanierPage() {
             Frais de livraison calculés à l'étape suivante.
           </p>
           <button
-            onClick={placeOrder}
+            // onClick={placeOrder}
             type="button"
             className="cursor-pointer inline-flex h-12 w-full items-center justify-center rounded-sm bg-primary font-bold text-slate-50 transition hover:bg-primary-hover"
           >
             Passer la commande
           </button>
+          <div className="my-1 flex items-center gap-3">
+            <div className="h-px flex-1 bg-neutral-200" />
+            <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
+              ou
+            </span>
+            <div className="h-px flex-1 bg-neutral-200" />
+          </div>
+          <button
+            onClick={placeOrderViaWhatsapp}
+            type="button"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-green-700 px-6 font-bold text-slate-50 transition hover:bg-green-900 cursor-pointer sm:w-fit disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isSubmitting
+              ? "Creation de la commande"
+              : "Commander via WhatsApp"}
+            <SiWhatsapp />
+          </button>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
       </div>
     </Container>

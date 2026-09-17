@@ -80,7 +80,8 @@ const ProductActions = ({product}:{product:ProductBySlug}) => {
             sku: variant.sku,
             unitPrice: variant.priceOverride ?? product?.promoPrice ?? product?.basePrice,
             quantity:1,
-            imageUrl: product.images[0]?.url
+            imageUrl: product.images[0]?.url,
+            slug: product.slug
             
             })
            }}
