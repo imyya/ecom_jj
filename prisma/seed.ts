@@ -45,7 +45,7 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/best-seller-cap.png", altText: "Casquette Classic Noire, face", position: 0 },
+          { url: "/images/products/black-cap.png", altText: "Casquette Classic Noire, face", position: 0 },
           { url: "/images/category-card-cap.png", altText: "Casquette Classic Noire, portée", position: 1 },
         ],
       },
@@ -70,7 +70,7 @@ async function main() {
       isNew: true,
       images: {
         create: [
-          { url: "/images/category-card-cap.png", altText: "Casquette Trucker Mesh", position: 0 },
+          { url: "/images/products/grey-mesh-cap.png", altText: "Casquette Trucker Mesh", position: 0 },
         ],
       },
       variants: {
@@ -93,8 +93,8 @@ async function main() {
       isBestSeller: true,
       images: {
         create: [
-          { url: "/images/best-seller-beanie.png", altText: "Bonnet Côtelé gris", position: 0 },
-          { url: "/images/best-seller-beanie2.png", altText: "Bonnet Côtelé, autre angle", position: 1 },
+          { url: "/images/products/black-short-beanie.png", altText: "Bonnet Côtelé gris", position: 0 },
+          { url: "/images/products/black-beanie.png", altText: "Bonnet Côtelé, autre angle", position: 1 },
         ],
       },
       variants: {
@@ -119,7 +119,7 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/category-card-beanie.png", altText: "Bonnet Fisherman", position: 0 },
+          { url: "/images/products/orange-beanie.png", altText: "Bonnet Fisherman", position: 0 },
         ],
       },
       variants: {
@@ -142,15 +142,17 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/best-seller-fedora.png", altText: "Bob Réversible kaki", position: 0 },
-          { url: "/images/category-card-bucket.png", altText: "Bob Réversible, face imprimée", position: 1 },
+          { url: "/images/products/kaki-bucket.png", altText: "Bob Réversible kaki", position: 0 },
+          { url: "/images/products/beige-bucket.png", altText: "Bob Réversible, beige", position: 1 },
+          { url: "/images/products/white-bucket.png", altText: "Bob Réversible, face imprimée", position: 2 },
+
         ],
       },
       variants: {
         create: [
           { sku: "BOB-REV-KHK-SM", color: "Kaki", size: "S/M", stock: 12 },
-          { sku: "BOB-REV-KHK-LXL", color: "Kaki", size: "L/XL", stock: 9 },
-          { sku: "BOB-REV-BLK-SM", color: "Noir", size: "S/M", stock: 7 },
+          { sku: "BOB-REV-KHK-LXL", color: "Beige", size: "L/XL", stock: 9 },
+          { sku: "BOB-REV-BLK-SM", color: "Blanc", size: "S/M", stock: 7 },
         ],
       },
     },
@@ -168,12 +170,12 @@ async function main() {
       isBestSeller: true,
       images: {
         create: [
-          { url: "/images/category-card-snapback.png", altText: "Snapback Flat Visor", position: 0 },
+          { url: "/images/products/marron-cap.png", altText: "Snapback Flat Visor", position: 0 },
         ],
       },
       variants: {
         create: [
-          { sku: "SNP-FLT-BLK", color: "Noir", size: "Unique", stock: 25 },
+          { sku: "SNP-FLT-BLK", color: "Marron", size: "Unique", stock: 25 },
           { sku: "SNP-FLT-WHT", color: "Blanc", size: "Unique", stock: 14 },
         ],
       },

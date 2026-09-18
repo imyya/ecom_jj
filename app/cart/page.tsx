@@ -15,7 +15,7 @@ export default function PanierPage() {
   const removeItem = useCartStore((state) => state.removeItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const clearCart = useCartStore((state)=>state.clearCart)
+  const clearCart = useCartStore((state) => state.clearCart);
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
   const placeOrderViaWhatsapp = async () => {
@@ -32,29 +32,29 @@ export default function PanierPage() {
       };
     });
     console.log("order items", orderItems);
- 
 
-     const result = await createOrder({items:orderItems})
-        if(!result.ok)
-    {
-        setIsSubmitting(false)
-        setError(result.message ?? 'Une erreur est survenue')
-        return
+    const result = await createOrder({ items: orderItems });
+    if (!result.ok) {
+      setIsSubmitting(false);
+      setError(result.message ?? "Une erreur est survenue");
+      return;
     }
 
     let message = "Bonjour, je souhaite commander :\n";
     for (const i of items) {
       //const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/boutique/${i.slug}`
       const price = i.unitPrice * i.quantity;
-      message = message + `\n${i.productName} (${i.variantLabel}) x${i.quantity} sous-total: ${price} FCFA`;
+      message =
+        message +
+        `\n${i.productName} (${i.variantLabel}) x${i.quantity} sous-total: ${price} FCFA`;
     }
-    message = message + `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
+    message =
+      message +
+      `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
     console.log(message);
-    clearCart()
-   
+    clearCart();
+
     window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-
   };
 
   if (items.length === 0) {
@@ -165,13 +165,13 @@ export default function PanierPage() {
           <p className="text-xs text-neutral-400">
             Frais de livraison calculés à l'étape suivante.
           </p>
-          <button
-            // onClick={placeOrder}
-            type="button"
+          <Link
+            href="/order"
             className="cursor-pointer inline-flex h-12 w-full items-center justify-center rounded-sm bg-primary font-bold text-slate-50 transition hover:bg-primary-hover"
           >
             Passer la commande
-          </button>
+          </Link>
+
           <div className="my-1 flex items-center gap-3">
             <div className="h-px flex-1 bg-neutral-200" />
             <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
