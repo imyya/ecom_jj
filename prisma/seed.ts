@@ -15,20 +15,37 @@ async function main() {
   await prisma.productVariant.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.deliveryZone.deleteMany(); // ← ajouter
 
   console.log("Catégories…");
   const [cap, beanies, buckets, snapback] = await Promise.all([
     prisma.category.create({
-      data: { name: "Casquettes", slug: "cap", description: "Casquettes ajustables et fittées." },
+      data: {
+        name: "Casquettes",
+        slug: "cap",
+        description: "Casquettes ajustables et fittées.",
+      },
     }),
     prisma.category.create({
-      data: { name: "Bonnets", slug: "beanies", description: "Bonnets pour toutes les saisons." },
+      data: {
+        name: "Bonnets",
+        slug: "beanies",
+        description: "Bonnets pour toutes les saisons.",
+      },
     }),
     prisma.category.create({
-      data: { name: "Bobs", slug: "buckets", description: "Bobs et chapeaux d'été." },
+      data: {
+        name: "Bobs",
+        slug: "buckets",
+        description: "Bobs et chapeaux d'été.",
+      },
     }),
     prisma.category.create({
-      data: { name: "Snapbacks", slug: "snapback", description: "Snapbacks à visière plate." },
+      data: {
+        name: "Snapbacks",
+        slug: "snapback",
+        description: "Snapbacks à visière plate.",
+      },
     }),
   ]);
 
@@ -37,7 +54,8 @@ async function main() {
     data: {
       name: "Casquette Classic Noire",
       slug: "casquette-classic-noire",
-      description: "Casquette 6 panneaux en coton lourd, boucle métal réglable.",
+      description:
+        "Casquette 6 panneaux en coton lourd, boucle métal réglable.",
       categoryId: cap.id,
       basePrice: 6500,
       isActive: true,
@@ -45,8 +63,16 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/products/black-cap.png", altText: "Casquette Classic Noire, face", position: 0 },
-          { url: "/images/category-card-cap.png", altText: "Casquette Classic Noire, portée", position: 1 },
+          {
+            url: "/images/products/black-cap.png",
+            altText: "Casquette Classic Noire, face",
+            position: 0,
+          },
+          {
+            url: "/images/category-card-cap.png",
+            altText: "Casquette Classic Noire, portée",
+            position: 1,
+          },
         ],
       },
       variants: {
@@ -70,7 +96,11 @@ async function main() {
       isNew: true,
       images: {
         create: [
-          { url: "/images/products/grey-mesh-cap.png", altText: "Casquette Trucker Mesh", position: 0 },
+          {
+            url: "/images/products/grey-mesh-cap.png",
+            altText: "Casquette Trucker Mesh",
+            position: 0,
+          },
         ],
       },
       variants: {
@@ -93,8 +123,16 @@ async function main() {
       isBestSeller: true,
       images: {
         create: [
-          { url: "/images/products/black-short-beanie.png", altText: "Bonnet Côtelé gris", position: 0 },
-          { url: "/images/products/black-beanie.png", altText: "Bonnet Côtelé, autre angle", position: 1 },
+          {
+            url: "/images/products/black-short-beanie.png",
+            altText: "Bonnet Côtelé gris",
+            position: 0,
+          },
+          {
+            url: "/images/products/black-beanie.png",
+            altText: "Bonnet Côtelé, autre angle",
+            position: 1,
+          },
         ],
       },
       variants: {
@@ -119,7 +157,11 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/products/orange-beanie.png", altText: "Bonnet Fisherman", position: 0 },
+          {
+            url: "/images/products/orange-beanie.png",
+            altText: "Bonnet Fisherman",
+            position: 0,
+          },
         ],
       },
       variants: {
@@ -142,10 +184,21 @@ async function main() {
       isFeatured: true,
       images: {
         create: [
-          { url: "/images/products/kaki-bucket.png", altText: "Bob Réversible kaki", position: 0 },
-          { url: "/images/products/beige-bucket.png", altText: "Bob Réversible, beige", position: 1 },
-          { url: "/images/products/white-bucket.png", altText: "Bob Réversible, face imprimée", position: 2 },
-
+          {
+            url: "/images/products/kaki-bucket.png",
+            altText: "Bob Réversible kaki",
+            position: 0,
+          },
+          {
+            url: "/images/products/beige-bucket.png",
+            altText: "Bob Réversible, beige",
+            position: 1,
+          },
+          {
+            url: "/images/products/white-bucket.png",
+            altText: "Bob Réversible, face imprimée",
+            position: 2,
+          },
         ],
       },
       variants: {
@@ -170,7 +223,11 @@ async function main() {
       isBestSeller: true,
       images: {
         create: [
-          { url: "/images/products/marron-cap.png", altText: "Snapback Flat Visor", position: 0 },
+          {
+            url: "/images/products/marron-cap.png",
+            altText: "Snapback Flat Visor",
+            position: 0,
+          },
         ],
       },
       variants: {
@@ -180,6 +237,16 @@ async function main() {
         ],
       },
     },
+  });
+
+  console.log("Zones de livraison…");
+  await prisma.deliveryZone.createMany({
+    data: [
+      { name: "Dakar", fee: 1000 },
+      { name: "Pikine", fee: 1500 },
+      { name: "Guédiawaye", fee: 1500 },
+      { name: "Rufisque", fee: 2000 },
+    ],
   });
 
   const count = await prisma.product.count();

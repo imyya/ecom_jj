@@ -1,10 +1,11 @@
+'use client'
 import { useCartStore } from "@/features/cart/store";
 import { DeliveryZone } from "@/generated/prisma";
 import React, { useState } from "react";
 import createOrder from "../actions";
 import { formatPrice } from "@/lib/utils";
 
-const CheckoutForm = (deliveryZones: { deliveryZones: DeliveryZone[] }) => {
+const CheckoutForm = ({deliveryZones}: { deliveryZones: DeliveryZone[] }) => {
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
@@ -201,7 +202,7 @@ const CheckoutForm = (deliveryZones: { deliveryZones: DeliveryZone[] }) => {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex h-12 w-full items-center justify-center rounded-sm bg-primary font-bold text-slate-50 transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+        className="cursor-pointer inline-flex h-12 w-full items-center justify-center rounded-sm bg-primary font-bold text-slate-50 transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isSubmitting ? "Création de la commande..." : "Confirmer la commande"}
       </button>

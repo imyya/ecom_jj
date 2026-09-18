@@ -6,8 +6,8 @@ export const  listDeliveryZones = async ()=>{
     return await prisma.deliveryZone.findMany({
         where:{
             isActive:true,
-            orderBy: {name:"asc"}
-        }
+        },
+        orderBy: {name:"asc"}
     })
     
 }
