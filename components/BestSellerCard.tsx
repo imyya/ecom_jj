@@ -3,6 +3,8 @@
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { BestSellersListItem } from "@/features/product/queries";
+import { formatPrice } from "@/lib/utils";
 
 type BestSeller = {
   slug: string; // ← à ajouter dans bestSellers.ts
@@ -11,7 +13,7 @@ type BestSeller = {
   price: string;
 };
 
-export default function BestSellerCard({ slug, name, src, price }: BestSeller) {
+export default function BestSellerCard({bestSeller}:{bestSeller: BestSellersListItem}) {
   const handleAddToCart = () => {
     // TODO: logique panier
   };
@@ -19,21 +21,24 @@ export default function BestSellerCard({ slug, name, src, price }: BestSeller) {
   return (
     <article className="group relative flex flex-col gap-2">
       {/* image */}
-      <div className="relative overflow-hidden rounded-lg">
+      <div className="relative overflow-hidden rounded-lg aspect-[3/1] bg-neutral-100">
         <Image
-          src={src}
-          alt={name}
-          //width={100}
-          // height={400}
-          sizes="(max-width: 768px) 100vw, 25vw"
-          className="w-full h- object-cover transition duration-300 group-hover:scale-105"
+          src={bestSeller.images[0].url}
+          alt={bestSeller.name}
+          // width={100}
+          // height={100}
+          fill
+          // sizes="(max-width: 768px) 100vw, 25vw"
+          // sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          sizes="(max-width: 767px) 100vw, 25vw"
+          className="object-cover transition duration-300 group-hover:scale-105"
         />
 
         {/* bouton panier — au-dessus du lien étendu grâce à z-10 */}
         <button
           type="button"
           onClick={handleAddToCart}
-          aria-label={`Ajouter ${name} au panier`}
+          aria-label={`Ajouter ${bestSeller.name} au panier`}
           className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-sm
                      bg-white px-3 py-1 text-sm font-medium 
                      transition hover:bg-white/90"
@@ -47,15 +52,21 @@ export default function BestSellerCard({ slug, name, src, price }: BestSeller) {
       <div className="flex flex-col">
         <h3 className="font-bold text-slate-900 text-lg">
           <Link
-            href={`/boutique/${slug}`}
+            href={`/boutique/${bestSeller.slug}`}
             className="after:absolute after:inset-0 after:content-['']
                        hover:text-primary transition"
           >
-            {name}
+            {bestSeller.name}
           </Link>
         </h3>
-        <p className="text-sm font-medium text-primary">{price} FCFA</p>
-      </div>
+{bestSeller.promoPrice ? (
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-bold text-primary">{formatPrice(bestSeller.promoPrice)}</span>
+              <span className="text-md text-neutral-400 line-through">{formatPrice(bestSeller.basePrice)}</span>
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-primary">{formatPrice(bestSeller.basePrice)}</span>
+          )}      </div>
     </article>
   );
 }

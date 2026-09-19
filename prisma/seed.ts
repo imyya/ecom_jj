@@ -124,7 +124,7 @@ async function main() {
       images: {
         create: [
           {
-            url: "/images/products/black-short-beanie.png",
+            url: "/images/products/black-beanie-bg.png",
             altText: "Bonnet Côtelé gris",
             position: 0,
           },

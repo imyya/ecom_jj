@@ -4,6 +4,7 @@ import React from 'react'
 import CategoryCard from '../CategoryCard'
 import {motion, Variants} from "motion/react"
 import Container from '../ui/Container'
+import { CategoryListItem, listCategories } from '@/features/category/queries'
 
 const container = {
   hidden: {},
@@ -22,7 +23,7 @@ const item:Variants = {
 };
 
 
-export default function FeaturedCategories() {
+ export default function FeaturedCategories({categories}:{categories:CategoryListItem[]}) {
   return (
     <section className=' bg-stone-50'>
       <Container className='flex flex-col gap-4 py-12 lg:py-16'>
@@ -30,11 +31,13 @@ export default function FeaturedCategories() {
       <div className='flex flex-col justify-between '>
         <p className='font-bold text-slate-900 text-2xl animate-in fade-in slide-in-from-bottom-7 duration-700'>Nos Catégories</p>
       </div>
+      
       <motion.div className='grid grid-cols-1 md:grid-cols-4 gap-3 '
       variants={container}
       initial = "hidden"
       whileInView="show"
       viewport={{once:true, amount:0.2}}
+      
       >
         {categories.map((c) => (
           <motion.div
@@ -44,14 +47,11 @@ export default function FeaturedCategories() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
 
           >
-          <CategoryCard name={c.name} src={c.src} slug={c.slug} />
+          <CategoryCard name={c.name} src={c.products[0].images[0].url} slug={c.slug} />
           </motion.div>
         ))}
         </motion.div>
       </Container>
-      
-
-
     </section>
   )
 }

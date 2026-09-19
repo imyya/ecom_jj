@@ -56,5 +56,20 @@ export const getProductBySlug = async(params:{slug:string})=>{
     })
 }
 
+export const listBestSellers = async()=>{
+    return await prisma.product.findMany({
+        where:{
+            isBestSeller:true
+        },
+        include:{
+            images:{
+                take:1
+            }
+        },
+        orderBy:{name:"asc"}
+    })
+}
+
 export type ProductListItem = Awaited<ReturnType<typeof listProducts>>[number];
 export type ProductBySlug = Awaited<ReturnType<typeof getProductBySlug>>
+export type BestSellersListItem = Awaited<ReturnType<typeof listBestSellers>>[number]

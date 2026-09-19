@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Variants, motion } from "motion/react";
 import Container from "../ui/Container";
+import { BestSellersListItem } from "@/features/product/queries";
 
 const container: Variants = {
   hidden: {},
@@ -26,7 +27,7 @@ const item: Variants = {
   },
 };
 
-export default function BestSellers() {
+export default function BestSellers({bestSellers}:{bestSellers:BestSellersListItem[]}) {
   return (
     <section className="">
       <Container className="mx-auto max-w-7xl px-6 lg:px-12 py-12 lg:py-16 flex flex-col gap-4">
@@ -46,11 +47,13 @@ export default function BestSellers() {
         initial = "hidden"
          whileInView="show"
         viewport={{once:false, amount:0.2}}
-        className="grid grid-cols-1 md:grid-cols-4 gap-3 "
+        // style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 260px))" }}
+
+        className="grid grid-cols-1 md:grid-cols-4 gap-3"
       >
-        {bestSellers.map((c) => (
-          <motion.div key={c.name} variants={item}>
-            <BestSellerCard key={c.name} {...c} />
+        {bestSellers.map((b) => (
+          <motion.div key={b.name} variants={item}>
+            <BestSellerCard bestSeller={b} />
           </motion.div>
         ))}
       </motion.div>

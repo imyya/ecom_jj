@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import Image, { StaticImageData } from 'next/image'
+import Link from 'next/link'
 import React from 'react'
 
 type categProps={
@@ -7,8 +8,10 @@ name:string,
 src:string | StaticImageData,
 slug:string
 }
-export default function CategoryCard({name,src}:categProps ){
+export default function CategoryCard({name,src,slug}:categProps ){
   return (
+    <Link
+    href={`/boutique?category=${slug}`}>
     <div className='relative h-44 flex flex-col justify-end cursor-pointer'>
         <Image fill alt='' sizes="(max-width:768px) 100vw, 33vw" src={src} className='object-cover'></Image>
         <div className='absolute flex w-full justify-between px-4 pb-4'>
@@ -17,5 +20,6 @@ export default function CategoryCard({name,src}:categProps ){
         </div>
       
     </div>
+    </Link>
   )
 }
