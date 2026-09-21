@@ -1,13 +1,15 @@
 import "server-only"
 import prisma from "@/lib/prisma"
+import { Prisma } from "@/generated/prisma/client";
 
-function buildWhere(params?:{categorySlug?:string}){
+function buildWhere(params?:{categorySlug?:string; search?: string}): Prisma.ProductWhereInput{
     return {
         isActive: true,
-        ...(params?.categorySlug? {category:{slug:params.categorySlug}}:{})
+        ...(params?.categorySlug? {category:{slug:params.categorySlug}}:{}),
+        ...(params?.search? {name:{contains:params.search, mode:"insensitive"}}:{})
     }
 }
-export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number})=>{
+export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number, search?:string})=>{
     const products = await prisma.product.findMany({
         where: buildWhere(params)
       //  {
@@ -31,7 +33,7 @@ export const listProducts=async(params?:{categorySlug?:string,pageNumber?:number
     return products
 }
 
-export const countTotalProducts=async(params?:{categorySlug?:string})=>{
+export const countTotalProducts=async(params?:{categorySlug?:string, search?:string})=>{
     return await prisma.product.count({
 
         where:buildWhere(params)

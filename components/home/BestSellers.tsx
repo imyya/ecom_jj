@@ -47,8 +47,6 @@ export default function BestSellers({bestSellers}:{bestSellers:BestSellersListIt
         initial = "hidden"
          whileInView="show"
         viewport={{once:false, amount:0.2}}
-        // style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 260px))" }}
-
         className="grid grid-cols-1 md:grid-cols-4 gap-3"
       >
         {bestSellers.map((b) => (
