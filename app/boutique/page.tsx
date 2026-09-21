@@ -9,6 +9,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import ProductCard from "@/features/product/components/ProductCard";
+import ProductSearch from "@/features/product/components/ProductSearch";
 import { countTotalProducts, listProducts } from "@/features/product/queries";
 import { getPageNumbers } from "@/lib/pagination";
 import { Search } from "lucide-react";
@@ -39,7 +40,11 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
 
   return (
     <Container className="py-12 lg:py-16">
-      <form method="GET" className="mb-8 flex gap-2 items-center">
+      <ProductSearch
+        initialValue={searchQuery}
+        category={typeof category === "string" ? category : undefined}
+      ></ProductSearch>
+      {/* <form method="GET" className="mb-8 flex gap-2 items-center">
         {category && <input type="hidden" name="category" value={category} />}
 
         <input
@@ -55,7 +60,7 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
         >
           <Search className="size-4" />
         </button>
-      </form>
+      </form> */}
       {products.length === 0 ? (
         <p className="text-neutral-500">Aucun produit trouvé.</p>
       ) : (

@@ -25,7 +25,6 @@ export default function BestSellerCard({
   return (
     <article className="group relative flex flex-col gap-2">
       {/* image */}
-      <Link href={`/boutique/${bestSeller.slug}`}>
         <div className="relative overflow-hidden rounded-lg aspect-[3/1] bg-neutral-100">
           <Image
             src={bestSeller.images[0].url}
@@ -79,7 +78,6 @@ export default function BestSellerCard({
             </span>
           )}{" "}
         </div>
-      </Link>
     </article>
   );
 }

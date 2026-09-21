@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
 import ProductActions from "@/features/product/components/ProductActions";
+import ProductGallery from "@/features/product/components/ProductGallery";
 
 export async function generateMetadata({ params }: PageProps<"/boutique/[slug]">) {
   const { slug } = await params;
@@ -46,7 +47,9 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-16">
         {/* galerie */}
-        <div className="flex flex-col gap-3">
+
+        <ProductGallery product={product}/>
+        {/* <div className="flex flex-col gap-3">
           <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
             {cover ? (
               <Image
@@ -72,7 +75,7 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* infos */}
         <div className="flex flex-col gap-6">
