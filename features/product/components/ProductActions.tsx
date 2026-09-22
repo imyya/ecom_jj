@@ -72,6 +72,7 @@ const ProductActions = ({product}:{product:ProductBySlug}) => {
             const variant = product?.variants.find((v)=>v.id === selectedVariantId)
             if(!variant) return
             if(!product) return
+            const variantIndex = product?.variants.findIndex((v)=>v.id=== selectedVariantId)
             addItem({
             productId: product?.id,
             variantId: variant.id,
@@ -80,7 +81,8 @@ const ProductActions = ({product}:{product:ProductBySlug}) => {
             sku: variant.sku,
             unitPrice: variant.priceOverride ?? product?.promoPrice ?? product?.basePrice,
             quantity:1,
-            imageUrl: product.images[0]?.url,
+            // imageUrl: product.images[0]?.url,
+            imageUrl: product.images[variantIndex]?.url,
             slug: product.slug
             
             })

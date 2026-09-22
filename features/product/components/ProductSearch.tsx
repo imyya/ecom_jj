@@ -21,13 +21,14 @@ const ProductSearch = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(()=> {
-    const timeout = setTimeout(async () => {
-      const results = await searchProductSuggestions(query);
+      const timeout = setTimeout(async () => {
+          console.log("the category",category)
+          const results = await searchProductSuggestions(query);
       setSuggestions(results);
       setIsOpen(results.length > 0);
       const params = new URLSearchParams();
       if (query) params.set("search", query);
-      if (category) params.set("category", query);
+      if (category) params.set("category", category);
       router.replace(`/boutique?${params.toString()}`);
     }, 300);
     return () => clearTimeout(timeout);

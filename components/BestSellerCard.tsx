@@ -39,9 +39,10 @@ export default function BestSellerCard({
           />
 
           {/* bouton panier — au-dessus du lien étendu grâce à z-10 */}
+          <Link href={`/boutique/${bestSeller.slug}`}>
           <button
             type="button"
-            onClick={handleAddToCart}
+            // onClick={handleAddToCart}
             aria-label={`Ajouter ${bestSeller.name} au panier`}
             className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-sm
                      bg-white px-3 py-1 text-sm font-medium 
@@ -50,6 +51,7 @@ export default function BestSellerCard({
             <Plus className="size-4" />
             Ajouter
           </button>
+          </Link>
         </div>
 
         {/* infos */}

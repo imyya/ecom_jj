@@ -27,7 +27,7 @@ export default function Hero() {
 
           <Link
             href="/boutique"
-            className="inline-flex items-center justify-center w-fit px-6 h-10 rounded-sm
+            className="inline-flex items-center justify-center w-fit px-6 h-10 
              bg-primary text-slate-50 font-bold hover:bg-primary-hover transition
              animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300 fill-mode-both"
           >

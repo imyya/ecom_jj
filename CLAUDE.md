@@ -45,3 +45,27 @@ Authentification admin : JWT (cookie httpOnly) + bcrypt
 État panier (client) : Zustand + localStorage — utilisé dès la sous-phase A (le panier existe dès le lancement, seul le paiement automatisé est reporté en sous-phase B)
 Fonts : Outfit, chargée via next/font/google dans app/layout.tsx (subsets latin + latin-ext pour les accents français), exposée comme variable CSS, mappée dans app/globals.css via @theme.
 Paiement : agrégateur ouest-africain (PayDunya, CinetPay ou Kkiapay — à confirmer) pour Wave + Orange Money + carte, à activer en sous-phase B seulement. Ne PAS essayer d'intégrer les API Wave/Orange Money directement.
+
+
+
+Back-office admin à construire — MVP (Sous-phase A)
+
+Périmètre précis du back-office pour le MVP, au-delà du CRUD produits/commandes/clients basique. Ordre de construction recommandé (chaque module s'appuie sur le précédent) :
+
+1. Authentification admin + rôles (§28) — login JWT (cookie httpOnly), middleware de protection /admin/*, écran de gestion des comptes admin (créer/désactiver, assigner un rôle : SUPER_ADMIN / GESTIONNAIRE / COMMERCIAL). Prérequis à tout le reste.
+
+2. Produits & variantes (§6, §7, §13) — CRUD produit (créer/modifier/supprimer/désactiver), catégorisation, upload photos, gestion des variantes couleur/taille avec SKU par combinaison, prix normal + prix promotionnel simple.
+
+3. Stock (§11, §12) — vue par variante avec stock disponible (= stock - reservedStock) et stock réservé affichés séparément, seuil d'alerte (minStock) + badge rupture, écran d'ajustement manuel (variante + quantité + motif — corrections d'inventaire/vente physique, PAS les ventes WhatsApp qui sont trackées automatiquement), historique des mouvements par produit.
+
+4. Commandes (§9, §10, §13, §18) — liste avec recherche/filtre par statut, vue détail (client, articles commandés, montant, livraison — le détail complet qui n'apparaît PAS dans le message WhatsApp), changement de statut avec écriture dans OrderStatusHistory, action de confirmation manuelle du paiement (transition PAIEMENT_EN_ATTENTE → PAIEMENT_CONFIRME qui décrémente stock ET reservedStock — le cœur du système), vue des commandes PAIEMENT_EN_ATTENTE de plus de 24-48h à annuler/nettoyer.
+
+5. Clients (§13, §17) — liste, coordonnées, historique de commandes par client, montant total dépensé, nombre de commandes, date de dernière commande.
+
+6. Livraison (§33) — gestion des zones de livraison et de leurs tarifs, configurable sans redéploiement.
+
+7. Paramètres du site (§34) — formulaire unique : logo, numéro WhatsApp, téléphone, email, adresse, réseaux sociaux, devise, conditions de livraison/retour, horaires. Prérequis technique : le bouton WhatsApp (§20) et le footer public doivent lire ces valeurs, jamais les coder en dur.
+
+8. Dashboard (§14) — à construire en dernier, agrège les données des modules précédents : indicateurs (CA jour/semaine/mois, commandes par statut, clients, ruptures) + graphiques (ventes par période, produits les plus vendus, catégories les plus vendues), filtre par période.
+
+Hors périmètre MVP (Phase 2, §45-46) : modération des avis clients (§36), promotions avancées avec dates/ciblage catégorie (§15) et codes promo (§16) — seul le prix promotionnel simple par produit est couvert en MVP, exports Excel/CSV/PDF (§29), intégration Analytics/Pixels (§30), notifications automatisées multi-canal email/SMS/WhatsApp (§19) — les alertes admin de base (commandes en attente, stock faible, rupture) sont déjà couvertes par le Dashboard du point 8.
