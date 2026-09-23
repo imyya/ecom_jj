@@ -39,7 +39,7 @@ export default function Hero() {
         src={heroImage}
         alt="Chapeaux, bonnets et casquettes de notre collection"
         priority
-        className="h-full w-xl object-cover"
+        className="h-full w-xl object-cover hidden md:block"
       />
       </Container>
     </section>

@@ -17,7 +17,8 @@ import Link from "next/link";
 import React from "react";
 
 export default async function Page({ searchParams }: PageProps<"/boutique">) {
-  const { category, page, search } = await searchParams;
+  const { search, category, priceMin, priceMax, size, color, page } =
+    await searchParams;
   const currentPage = Number(page) || 1;
   const searchQuery = typeof search === "string" ? search : undefined;
 
@@ -26,10 +27,24 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
       categorySlug: typeof category === "string" ? category : undefined,
       pageNumber: Number(page || 1),
       search: searchQuery,
+      isActive: true,
+      priceMin:
+        typeof priceMin === "string" && priceMin ? Number(priceMin) : undefined,
+      priceMax:
+        typeof priceMax === "string" && priceMax ? Number(priceMax) : undefined,
+      size: typeof size === "string" ? size : undefined,
+      color: typeof color === "string" ? color : undefined,
     }),
     countTotalProducts({
       categorySlug: typeof category === "string" ? category : undefined,
       search: searchQuery,
+      isActive: true,
+      priceMin:
+        typeof priceMin === "string" && priceMin ? Number(priceMin) : undefined,
+      priceMax:
+        typeof priceMax === "string" && priceMax ? Number(priceMax) : undefined,
+      size: typeof size === "string" ? size : undefined,
+      color: typeof color === "string" ? color : undefined,
     }),
   ]);
   const totalPages = Math.ceil(totalCount / 5);
