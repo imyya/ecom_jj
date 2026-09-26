@@ -22,7 +22,7 @@ async function generateOrderNumber(tx: Prisma.TransactionClient): Promise<string
 const createOrder= async(order: CreateOrderInput)=>{
 const parsed = CreateOrderSchema.safeParse(order)
 if (!parsed.success) {
-  return { ok: false, errors: parsed.error.flatten() };
+  return { ok: false, errors: z.flattenError(parsed.error) };
 }
 
 try{

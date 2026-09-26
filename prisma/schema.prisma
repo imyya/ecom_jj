@@ -106,6 +106,7 @@ model ProductImage {
   productId String
   url       String
   altText   String?
+  publicId  String?
   position  Int     @default(0)
 }
 

@@ -15,7 +15,7 @@ import { revalidatePath } from "next/cache";
 export async function createCategory(formData: FormData) {
   const parsed = CreateCategorySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten() };
+    return { ok: false, errors: z.flattenError(parsed.error) };
   }
 
   try {

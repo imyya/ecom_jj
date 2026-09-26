@@ -17,8 +17,8 @@ export async function generateMetadata({ params }: PageProps<"/boutique/[slug]">
     title: product.name,
     description: product.description,
     openGraph: {
-      title: product.name,
-      description: product.description ?? undefined,
+      title: product.seoTitle || `${product.name} | Jiiro`,
+      description: product.seoDescription ?? product.description ?? undefined,
       images: product.images[0]?.url ? [product.images[0].url] : [],
     },
   };

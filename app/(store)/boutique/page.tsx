@@ -1,13 +1,13 @@
 import { buttonVariants } from "@/components/ui/button";
 import Container from "@/components/ui/Container";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import ProductCard from "@/features/product/components/ProductCard";
 import ProductSearch from "@/features/product/components/ProductSearch";
 import { countTotalProducts, listProducts } from "@/features/product/queries";

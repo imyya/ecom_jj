@@ -11,6 +11,7 @@ const ProductVariantSchema = z.object({
 const ProductImageSchema = z.object({
   url: z.string().min(1),
   altText: z.string().optional(),
+  publicId: z.string().optional(),
   position: z.coerce.number().int().min(0).optional(),
 });
 
@@ -56,6 +57,7 @@ export const UpdateProductInputSchema = z.object({
 export const AddProductImageSchema = z.object({
   productId: z.string().min(1),
   url: z.string().min(1),
+  publicId: z.string().optional(),
   altText: z.string().optional(),
 });
 export const RemoveProductImageSchema = z.object({

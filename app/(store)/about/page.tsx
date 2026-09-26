@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Page() {
   return (
     <Container className="py-16 lg:py-24">
-      <div className="max-w-2xl">
+      <div className="max-w-2xl mb-20">
         <h1 className="text-3xl font-bold font-heading text-slate-900 sm:text-4xl">
           À propos de Jiiro
         </h1>

@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ["localhost:3000","*.devtunnels.ms"],
     },
+    
+  },
+  images: {
+    remotePatterns: [new URL(`https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/**`)],
   },
 };
 
