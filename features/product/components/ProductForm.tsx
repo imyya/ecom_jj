@@ -110,7 +110,8 @@ export function ProductForm({
       variants: variants.map(({ id, ...v }) => v),
       images: images
         .filter((img) => img.url.trim())
-        .map(({ id, ...img }) => img),
+        .map(({id, ...img},index)=> ({...img,position:index})) //retire le id et laisse les autre propriete et ajoute la position qui est egal a l'index
+       // .map(({ id, ...img }) => img),
     };
 
     startTransition(async () => {
@@ -441,6 +442,8 @@ export function ProductForm({
                 onChange={(e) =>  {
                   const file = e.target.files?.[0]
                   if(file) handleFileUpload(file,img.id,)
+                 
+                  
                     }
                 }
                 className="w-full rounded-sm border border-neutral-300 px-2 py-1.5 text-sm cursor-pointer"
