@@ -52,6 +52,7 @@ export const UpdateProductInputSchema = z.object({
   isBestSeller: z.boolean().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
+  // images:z.array(AddProductImageSchema).optional()
 });
 
 export const AddProductImageSchema = z.object({

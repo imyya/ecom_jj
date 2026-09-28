@@ -115,11 +115,12 @@ model ProductVariant {
   id             String          @id @default(cuid())
   product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId      String
+  isActive Boolean @default(true)
   sku            String          @unique
   color          String?
   size           String?
   priceOverride  Int? // si le prix diffère du produit parent
-  stock          Int             @default(0) // stock disponible
+  stock          Int             @default(0) // stock physique
   reservedStock  Int             @default(0) // réservé (commande en cours de paiement)
   minStock       Int             @default(3) // seuil d'alerte stock faible (§11)
   stockMovements StockMovement[]

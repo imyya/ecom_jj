@@ -202,7 +202,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
-                    href={`/admin/product/${p.id}/edit`}
+                    href={`/admin/product/${p.slug}/edit`}
                     className="font-medium text-primary hover:text-primary-hover"
                   >
                     Modifier

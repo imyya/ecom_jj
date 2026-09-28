@@ -6,11 +6,16 @@ import {
   createProduct,
   deleteUploadedImage,
   generateCloudinarySignature,
+  removeProductImage,
 } from "@/features/product/actions";
 import type { CategoryListItem } from "@/features/category/queries";
 import { Images } from "lucide-react";
+import { ProductBySlug } from "../queries";
+import { ProductVariant } from "@/generated/prisma";
+import Image from "next/image";
 
 type VariantRow = {
+  dbId?: string
   id: string;
   sku: string;
   color: string;
@@ -21,9 +26,10 @@ type VariantRow = {
 
 type ImageRow = {
   id: string;
+  dbId?: string
   url: string;
   altText: string;
-  publicId:string
+  publicId: string;
 };
 
 type FlattenedErrors = {
@@ -44,32 +50,63 @@ const emptyImage = (): ImageRow => ({
   id: crypto.randomUUID(),
   url: "",
   altText: "",
-  publicId:""
+  publicId: "",
 });
+
+// const variantType = Awaited<ReturnType<typeof ProductVariant>[number]
 
 export function ProductForm({
   categories,
+  product,
 }: {
   categories: CategoryListItem[];
+  product?: ProductBySlug;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errors, setErrors] = useState<FlattenedErrors | null>(null);
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
-  const [basePrice, setBasePrice] = useState<number>(0);
-  const [promoPrice, setPromoPrice] = useState<number | undefined>(undefined);
-  const [isActive, setIsActive] = useState(true);
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [isNew, setIsNew] = useState(false);
-  const [isBestSeller, setIsBestSeller] = useState(false);
-  const [seoTitle, setSeoTitle] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
+  const [name, setName] = useState(product?.name ?? "");
+  const [description, setDescription] = useState(product?.description ?? "");
+  const [categoryId, setCategoryId] = useState(
+    product?.categoryId ?? categories[0]?.id ?? "",
+  );
+  const [basePrice, setBasePrice] = useState<number>(product?.basePrice ?? 0);
+  const [promoPrice, setPromoPrice] = useState<number | undefined>(
+    product?.promoPrice ?? undefined,
+  );
+  const [isActive, setIsActive] = useState(product?.isActive ?? true);
+  const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
+  const [isNew, setIsNew] = useState(product?.isNew ?? false);
+  const [isBestSeller, setIsBestSeller] = useState(
+    product?.isBestSeller ?? false,
+  );
+  const [seoTitle, setSeoTitle] = useState(product?.seoTitle ?? "");
+  const [seoDescription, setSeoDescription] = useState(
+    product?.seoDescription ?? "",
+  );
 
-  const [variants, setVariants] = useState<VariantRow[]>([emptyVariant()]);
-  const [images, setImages] = useState<ImageRow[]>([emptyImage()]);
+  const [variants, setVariants] = useState<VariantRow[]>(
+    product?.variants.map((v) => ({
+      id: crypto.randomUUID(),
+      dbId: v.id,
+      sku: v.sku,
+      color: v.color ?? "",
+      size: v.size ?? "",
+      stock: v.stock,
+      priceOverride: v.priceOverride ?? undefined,
+    })) ?? [emptyVariant()],
+  );
+
+  const [images, setImages] = useState<ImageRow[]>(
+    product?.images.map((i) => ({
+      id:crypto.randomUUID(),
+      dbId:i.id,
+      url: i.url,
+      altText: i.altText ?? "",
+      publicId: i.publicId ?? "",
+    })) ?? [emptyImage()],
+  );
 
   const updateVariant = (
     id: string,
@@ -110,32 +147,34 @@ export function ProductForm({
       variants: variants.map(({ id, ...v }) => v),
       images: images
         .filter((img) => img.url.trim())
-        .map(({id, ...img},index)=> ({...img,position:index})) //retire le id et laisse les autre propriete et ajoute la position qui est egal a l'index
-       // .map(({ id, ...img }) => img),
+        .map(({ id, ...img }, index) => ({ ...img, position: index })), //retire le id et laisse les autre propriete et ajoute la position qui est egal a l'index
+      // .map(({ id, ...img }) => img),
     };
 
     startTransition(async () => {
       const result = await createProduct(payload);
-        if (!result.ok){
-          setErrors (result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} })
-          return
+      if (!result.ok) {
+        setErrors(
+          result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} },
+        );
+        return;
       }
       router.push("/admin/product");
     });
   };
 
   const handleFileUpload = async (file: File, imageId: string) => {
-    try{
+    try {
+      const { signature, timestamp, apiKey, cloudName, folder } =
+        await generateCloudinarySignature();
 
-      const { signature, timestamp, apiKey, cloudName, folder } = await generateCloudinarySignature();
-  
       const formData = new FormData();
       formData.append("file", file);
       formData.append("api_key", apiKey!);
       formData.append("timestamp", String(timestamp));
       formData.append("signature", signature);
       formData.append("folder", folder);
-  
+
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
@@ -143,22 +182,35 @@ export function ProductForm({
           body: formData,
         },
       );
-      const data = await res.json()
+      const data = await res.json();
       console.log(data.public_id, data.asset_folder);
 
-      if(!res.ok) {
-        setErrors({formErrors:[data.error.message], fieldErrors:{}})
-        return
+      if (!res.ok) {
+        setErrors({ formErrors: [data.error.message], fieldErrors: {} });
+        return;
       }
-      //ici secure_url qui vient de cloudinary sert jsute a afficher limage 
+      //ici secure_url qui vient de cloudinary sert jsute a afficher limage
       //mais public_id de cloudinary est le id de limage chez cloudinary
       updateImage(imageId, "url", data.secure_url);
-      updateImage(imageId,"publicId",data.public_id)
-    }catch(err){
-      console.error("Error uploading image", err)
-
+      updateImage(imageId, "publicId", data.public_id);
+    } catch (err) {
+      console.error("Error uploading image", err);
     }
+  };
 
+  const onEditRemoveImage = async (img: ImageRow) => {
+    if (!img) return;
+    if (!img.dbId) {
+      // const result = await removeProductImage({ id: img.dbId! });
+      // console.log("le result",result)
+      // if (!result.ok) {
+      //   setErrors(
+      //     result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} },
+      //   );
+        // return;
+        deleteUploadedImage(img.publicId);
+      }
+    setImages((prev) => prev.filter((row) => row.id !== img.id));
   };
 
   return (
@@ -433,19 +485,24 @@ export function ProductForm({
             className="flex flex-wrap items-end gap-3 rounded-sm border border-neutral-200 p-3"
           >
             <div className="flex-1">
-              {/* <label className="mb-1 block text-xs font-medium text-neutral-500">
-                URL
-              </label> */}
+              {img.url && (
+                <div className="relative size-10">
+                  <Image
+                    src={img.url}
+                    alt={img.altText ?? ""}
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                  />
+                </div>
+              )}
               <input
                 type="file"
                 //value={img.url}
-                onChange={(e) =>  {
-                  const file = e.target.files?.[0]
-                  if(file) handleFileUpload(file,img.id,)
-                 
-                  
-                    }
-                }
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, img.id);
+                }}
                 className="w-full rounded-sm border border-neutral-300 px-2 py-1.5 text-sm cursor-pointer"
               />
             </div>
@@ -462,17 +519,9 @@ export function ProductForm({
             </div>
             <button
               type="button"
-              disabled={images.length === 1}
-              onClick={() =>
-                {
-
-                  const immg = images.find((im)=>im.id==img.id)
-                  if(immg) {
-
-                    deleteUploadedImage(immg.publicId)
-                  }
-                setImages((prev) => prev.filter((row) => row.id !== img.id))}
-              }
+              disabled={!product && images.length === 1}
+              onClick={() => onEditRemoveImage(img)}
+               
               className="rounded-sm px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-30"
             >
               Supprimer
@@ -486,7 +535,13 @@ export function ProductForm({
         disabled={isPending}
         className="rounded-sm bg-primary px-4 py-2 text-sm font-bold text-slate-50 hover:bg-primary-hover disabled:opacity-50"
       >
-        {isPending ? "Création..." : "Créer le produit"}
+        {!isPending && !product
+          ? "Créer le produit"
+          : isPending && !product
+            ? "Création..."
+            : isPending
+              ? "Modification..."
+              : "Modifier"}
       </button>
     </form>
   );

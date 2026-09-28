@@ -15,7 +15,7 @@ import { slugify } from "@/lib/slugify";
 import { revalidatePath } from "next/cache";
 import cloudinary from "@/lib/cloudinary";
 import { z } from "zod";
-import { ok } from "assert";
+import { StockMovementType } from "@/generated/prisma";
 
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "";
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "";
@@ -45,6 +45,14 @@ export async function createProduct(data: CreateProductInput) {
     return { ok: false, errors: z.flattenError(parsed.error) };
   }
   const slug = slugify(data.name);
+  const variants =  parsed.data.variants.map((v)=>({
+          ...v,
+           stockMovements: v.stock >0 ? {
+            create:{type:StockMovementType.IN, quantity:v.stock, reason: "Stock initial"}
+          }: undefined // pr gerer le cas ou on cree une variante avec stock 0 on veut pas creer un mouvement IN car techniquement rien nest entree
+
+        }))
+
   const product = await prisma.product.create({
     data: {
       name: parsed.data.name,
@@ -60,7 +68,8 @@ export async function createProduct(data: CreateProductInput) {
       seoTitle: parsed.data.seoTitle,
       seoDescription: parsed.data.seoDescription,
       variants: {
-        create: parsed.data.variants,
+        create:variants
+        
       },
       images: {
         create: parsed.data.images,
@@ -161,6 +170,13 @@ export async function deleteProduct(id: string) {
     };
   }
 }
+
+
+// updateVariant(variantId, { sku, color, size, priceOverride }) : modification sur place, sans stock.
+// addVariant(productId, { sku, color, size, priceOverride, stock }) : création, avec un mouvement IN si stock > 0, comme dans createProduct.
+// removeVariant(variantId) : compte les orderItems et les stockMovements. Si les deux valent 0, suppression. Sinon, isActive = false.
+
+// export async function 
 
 export async function addProductImage(data: AddProductImageInput) {
   const parsed = AddProductImageSchema.safeParse(data);
@@ -279,6 +295,8 @@ export const generateCloudinarySignature = async () => {
   };
 };
 
+
+
 // generateCloudinarySignature est une Server Action,
 // donc un endpoint public : n'importe qui peut l'appeler et
 // uploader sur ton compte Cloudinary. Pour l'instant ce n'est
@@ -288,6 +306,15 @@ export const generateCloudinarySignature = async () => {
 //    Mais note-le : quand tu feras le module 1 (auth admin),
 //  cette action devra vérifier la session admin, comme createProduct d'ailleurs
 
+// . Les actions que je te suggère
+// updateVariant(variantId, { sku, color, size, priceOverride }) : modification sur place, sans stock.
+// addVariant(productId, { sku, color, size, priceOverride, stock }) : création, avec un mouvement IN si stock > 0, comme dans createProduct.
+// removeVariant(variantId) : compte les orderItems et les stockMovements. Si les deux valent 0, suppression. Sinon, isActive = false.
+
+
+// Ta fonction deleteProduct fait un prisma.product.delete. Le onDelete: Cascade de ProductVariant → Product va essayer de supprimer les variantes… et va échouer pour la même raison (mouvements et commandes). En plus, OrderItem → product n'a pas de cascade non plus. Dès qu'un produit a un stock initial ou une commande, sa suppression plantera. Et ta fonction supprime les images Cloudinary avant le delete : elles seront effacées alors que le produit, lui, reste en base.
+
+// Pour un produit, la bonne pratique est la même : désactiver (isActive = false, le champ existe déjà sur Product) plutôt que supprimer, et ne supprimer vraiment qu'un produit sans aucun historique.
 export type Suggestion = Awaited<
   ReturnType<typeof searchProductSuggestions>
 >[number];
