@@ -15,7 +15,8 @@ import { slugify } from "@/lib/slugify";
 import { revalidatePath } from "next/cache";
 import cloudinary from "@/lib/cloudinary";
 import { z } from "zod";
-import { StockMovementType } from "@/generated/prisma";
+import { Prisma, StockMovementType } from "@/generated/prisma";
+import ProductActions from "./components/ProductActions";
 
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "";
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "";
@@ -44,7 +45,8 @@ export async function createProduct(data: CreateProductInput) {
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
   }
-  const slug = slugify(data.name);
+  try{
+     const slug = slugify(data.name);
   const variants =  parsed.data.variants.map((v)=>({
           ...v,
            stockMovements: v.stock >0 ? {
@@ -81,6 +83,17 @@ export async function createProduct(data: CreateProductInput) {
     data: [product],
     message: "Product created successfully",
   };
+
+  }catch(err){
+    if ((err as { code?: string }).code === "P2002") {
+    return { ok: false, message: "Ce SKU existe déjà" };
+  }
+  return {
+    ok: false,
+    message: err instanceof Error ? err.message : "Une erreur est survenue",
+  };
+  }
+ 
 }
 
 // export async function updateProduct(data: UpdateProductInput) {
@@ -166,19 +179,23 @@ export async function updateProduct(data: UpdateProductInput) {
   try {
     const product = await prisma.product.findUnique({
       where: { id: parsed.data.id },
-      include: { images: true },
+      include: {
+        images: true,
+        // _count : nombre de lignes de commande par variante, sans les charger
+        variants: { include: { _count: { select: { orderItems: true } } } },
+      },
     });
 
     if (!product) throw new Error("Produit introuvable");
 
-    // ---------- 1. Calcul : quoi créer / mettre à jour / supprimer ----------
+    // ================= IMAGES =================
     const imagesSent = parsed.data.images;
     type SentImage = NonNullable<typeof imagesSent>[number];
 
     const existingImages = new Map(product.images.map((img) => [img.id, img]));
 
     const imagesToBeCreated: SentImage[] = [];
-    const imagesToBeUpdated: (SentImage & { dbId: string })[] = [];//le type veut dire une images envoyees dont on est sur qu'elle a un dbId
+    const imagesToBeUpdated: (SentImage & { dbId: string })[] = [];
     let imagesToBeDeleted: typeof product.images = [];
     const publicIdsToDestroy: string[] = [];
 
@@ -187,7 +204,7 @@ export async function updateProduct(data: UpdateProductInput) {
         if (!img.dbId) {
           imagesToBeCreated.push(img);
         } else if (existingImages.has(img.dbId)) {
-          imagesToBeUpdated.push({ ...img, dbId: img.dbId });//on a du faire dbId:img.dbId malgre le fait k ...img spread le dbId c a cause de ts et aussi le dbId:img.dbId va ecraser le dbId du spread
+          imagesToBeUpdated.push({ ...img, dbId: img.dbId });
 
           // Image remplacée : l'ancien fichier Cloudinary devient inutile
           const old = existingImages.get(img.dbId)!;
@@ -195,21 +212,53 @@ export async function updateProduct(data: UpdateProductInput) {
             publicIdsToDestroy.push(old.publicId);
           }
         } else {
-          // dbId qui n'appartient pas à ce produit => requete anormale
           throw new Error("Image invalide");
         }
       }
 
-      // En base mais plus dans le formulaire => a supprimer
-      const sentIds = new Set(imagesSent.map((img) => img.dbId).filter(Boolean));//ici filter(Boolean) permet denlever les undefined
-      imagesToBeDeleted = product.images.filter((img) => !sentIds.has(img.id));
+      // En base mais retirées par l'admin dans le formulaire → à supprimer
+      const sentImageIds = new Set(imagesSent.map((img) => img.dbId).filter(Boolean));
+      imagesToBeDeleted = product.images.filter((img) => !sentImageIds.has(img.id));
 
       for (const img of imagesToBeDeleted) {
         if (img.publicId) publicIdsToDestroy.push(img.publicId);
       }
     }
 
-    // ---------- 2. Écriture en base : tout ou rien ----------
+    // ================= VARIANTES =================
+    const variantsSent = parsed.data.variants;
+    type SentVariant = NonNullable<typeof variantsSent>[number];
+
+    // Seules les variantes actives sont affichées dans le formulaire → on compare avec elles
+    const activeVariants = product.variants.filter((v) => v.isActive);
+    const existingVariants = new Map(activeVariants.map((v) => [v.id, v]));
+
+    const variantsToBeCreated: SentVariant[] = [];
+    const variantsToBeUpdated: (SentVariant & { dbId: string })[] = [];
+    let variantsToHardDelete: typeof product.variants = [];
+    let variantsToDeactivate: typeof product.variants = [];
+
+    if (variantsSent) {
+      for (const v of variantsSent) {
+        if (!v.dbId) {
+          variantsToBeCreated.push(v);
+        } else if (existingVariants.has(v.dbId)) {
+          variantsToBeUpdated.push({ ...v, dbId: v.dbId });
+        } else {
+          throw new Error("Variante invalide");
+        }
+      }
+
+      // Actives en base mais retirées par l'admin dans le formulaire
+      const sentVariantIds = new Set(variantsSent.map((v) => v.dbId).filter(Boolean));
+      const removed = activeVariants.filter((v) => !sentVariantIds.has(v.id));
+
+      // Jamais commandée → vraie suppression ; déjà commandée → désactivation
+      variantsToHardDelete = removed.filter((v) => v._count.orderItems === 0);
+      variantsToDeactivate = removed.filter((v) => v._count.orderItems > 0);
+    }
+
+    // ================= ÉCRITURE : tout ou rien =================
     const updatedProduct = await prisma.$transaction(async (tx) => {
       const updated = await tx.product.update({
         where: { id: product.id },
@@ -228,6 +277,7 @@ export async function updateProduct(data: UpdateProductInput) {
         },
       });
 
+      // --- Images ---
       if (imagesToBeDeleted.length > 0) {
         await tx.productImage.deleteMany({
           where: { id: { in: imagesToBeDeleted.map((img) => img.id) } },
@@ -235,10 +285,7 @@ export async function updateProduct(data: UpdateProductInput) {
       }
 
       for (const { dbId, ...img } of imagesToBeUpdated) {
-        await tx.productImage.update({
-          where: { id: dbId },
-          data: img,
-        });
+        await tx.productImage.update({ where: { id: dbId }, data: img });
       }
 
       if (imagesToBeCreated.length > 0) {
@@ -250,10 +297,51 @@ export async function updateProduct(data: UpdateProductInput) {
         });
       }
 
+      // --- Variantes ---
+      // 1. Suppression réelle : mouvements d'abord, sinon la clé étrangère bloque
+      if (variantsToHardDelete.length > 0) {
+        const ids = variantsToHardDelete.map((v) => v.id);
+        await tx.stockMovement.deleteMany({ where: { variantId: { in: ids } } });
+        await tx.productVariant.deleteMany({ where: { id: { in: ids } } });
+      }
+
+      // 2. Désactivation : l'historique (commandes, mouvements) reste intact
+      if (variantsToDeactivate.length > 0) {
+        await tx.productVariant.updateMany({
+          where: { id: { in: variantsToDeactivate.map((v) => v.id) } },
+          data: { isActive: false },
+        });
+      }
+
+      // 3. Mise à jour : `stock` est retiré par la déstructuration → jamais écrit
+      for (const { dbId, stock, ...rest } of variantsToBeUpdated) {
+        await tx.productVariant.update({ where: { id: dbId }, data: rest });
+      }
+
+      // 4. Création : stock initial + mouvement IN (create, pas createMany, à cause du mouvement imbriqué)
+      for (const { dbId, ...v } of variantsToBeCreated) {
+        await tx.productVariant.create({
+          data: {
+            ...v,
+            productId: product.id,
+            stockMovements:
+              v.stock > 0
+                ? {
+                    create: {
+                      type: StockMovementType.IN,
+                      quantity: v.stock,
+                      reason: "Stock initial",
+                    },
+                  }
+                : undefined,
+          },
+        });
+      }
+
       return updated;
     });
 
-    // ---------- 3. Cloudinary : seulement APRÈS le succès en base ----------
+    // ================= CLOUDINARY : seulement après le succès en base =================
     // allSettled : un destroy qui échoue ne fait pas échouer la mise à jour
     await Promise.allSettled(
       publicIdsToDestroy.map((id) => cloudinary.uploader.destroy(id)),
@@ -262,18 +350,19 @@ export async function updateProduct(data: UpdateProductInput) {
     revalidatePath("/admin/product");
     revalidatePath(`/boutique/${product.slug}`);
 
-    return {
-      ok: true,
-      data: [updatedProduct],
-      message: "Produit mis à jour",
-    };
+    return { ok: true, data: [updatedProduct], message: "Produit mis à jour" };
   } catch (err) {
-    return {
-      ok: false,
-      message: err instanceof Error ? err.message : "Une erreur est survenue",
-    };
+    // Contrainte @unique sur le SKU
+    if ((err as { code?: string }).code === "P2002") {
+    return { ok: false, message: "Ce SKU existe déjà" };
+  }
+  return {
+    ok: false,
+    message: err instanceof Error ? err.message : "Une erreur est survenue",
+  };
   }
 }
+
 
 
 

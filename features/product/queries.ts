@@ -30,13 +30,16 @@ function buildWhere(params?: {
       : {}),
     // ...(params?.size ? { variants: { some: { size: params.size } } } : {}),
     // ...(params?.color ? { variants: { some: { color: params.color } } } : {}),
-    ...(params?.size && params.color ? {variants:{some:{size:params.size, color:params.color}}} //si le filtre est fait simultanement sur les size et couleur sinon si cest separement.  
-    : params?.size ? {variants:{some:{size:params?.size}}}
-    :params?.color ? {variants:{some:{color:params?.color}}}
+    ...(params?.size && params.color ? {variants:{some:{size:params.size, color:params.color, isActive:true}}} //si le filtre est fait simultanement sur les size et couleur sinon si cest separement.  
+    : params?.size ? {variants:{some:{size:params?.size,isActive:true}}}
+    :params?.color ? {variants:{some:{color:params?.color, isActive:true}}}
      :{}
 )
   };
 }
+
+
+
 export const listProducts = async (params?: {
   categorySlug?: string;
   pageNumber?: number;
@@ -69,6 +72,31 @@ export const listProducts = async (params?: {
   return products;
 };
 
+
+export const listAdminProducts = async (params?: {
+  categorySlug?: string;
+  pageNumber?: number;
+  search?: string;
+  isActive?: boolean;
+  size?: string;
+  color?: string;
+  priceMin?: number;
+  priceMax?: number;
+}) => {
+  return await prisma.product.findMany({
+    where: buildWhere(params),
+    include: {
+      images: { orderBy: { position: "asc" } }, // toutes les images, pour le modal
+      category: true,
+      variants: { orderBy: { sku: "asc" } },    // toutes, y compris désactivées : c'est l'admin
+    },
+    skip: params?.pageNumber ? (params.pageNumber - 1) * 5 : 0,
+    take: 5,
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+
 export const countTotalProducts = async (params?: {
   categorySlug?: string;
   search?: string;
@@ -93,7 +121,11 @@ export const getProductBySlug = async (params: { slug: string }) => {
         orderBy: { position: "asc" },
       },
       category: true,
-      variants: true,
+      variants: {
+        where:{
+          isActive:true
+        }
+      },
     },
   });
 };
@@ -118,3 +150,5 @@ export type ProductBySlug = Awaited<ReturnType<typeof getProductBySlug>>;
 export type BestSellersListItem = Awaited<
   ReturnType<typeof listBestSellers>
 >[number];
+
+export type AdminProductListItem = Awaited<ReturnType<typeof listAdminProducts>>[number];

@@ -8,6 +8,15 @@ const ProductVariantSchema = z.object({
   stock: z.coerce.number().int().min(0),
 });
 
+const UpdateProductVariantSchema = z.object({
+  dbId: z.string().min(1).optional(), //dbId car dans ProductForm les images existantes on un dbId et l'id est kept for le id: randomUIID() de lobjet qui permet de lindentifier
+  sku: z.string().min(1),
+  color: z.string().optional(),
+  size: z.string().optional(),
+  priceOverride: z.coerce.number().int().positive().optional(),
+  stock: z.coerce.number().int().min(0),
+});
+
 const ProductImageSchema = z.object({
   url: z.string().min(1),
   altText: z.string().optional(),
@@ -36,7 +45,6 @@ export const CreateProductSchema = z
     path: ["promoPrice"],
   });
 
-
 export const AddProductImageSchema = z.object({
   productId: z.string().min(1),
   url: z.string().min(1),
@@ -49,7 +57,7 @@ export const UpdateProductImageSchema = z.object({
   url: z.string().min(1),
   publicId: z.string().optional(),
   altText: z.string().optional(),
-  position:z.number()
+  position: z.number(),
 });
 
 export const UpdateProductInputSchema = z.object({
@@ -65,13 +73,13 @@ export const UpdateProductInputSchema = z.object({
   isBestSeller: z.boolean().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
-  images:z.array(UpdateProductImageSchema).min(1).optional()
+  images: z.array(UpdateProductImageSchema).min(1).optional(),
+  variants: z.array(UpdateProductVariantSchema).optional()
 });
 
 export const RemoveProductImageSchema = z.object({
   id: z.string().min(1),
 });
-
 
 export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 export type AddProductImageInput = z.infer<typeof AddProductImageSchema>;

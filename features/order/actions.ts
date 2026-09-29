@@ -49,8 +49,8 @@ try{
             product:true
         }
     })
-    if(!item)  {
-        throw new Error(`Item not found`);
+    if(!item || !item.isActive)  {
+        throw new Error(`Un article de votre panier n'est plus disponible`);
     } 
     
         if(item.stock - item.reservedStock < i.quantity){

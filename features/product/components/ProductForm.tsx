@@ -133,7 +133,7 @@ export function ProductForm({
     e.preventDefault();
     setErrors(null);
 
-    let payload = {
+    const payload = {
       name,
       description: description || undefined,
       categoryId,
@@ -158,7 +158,7 @@ export function ProductForm({
       const result = product ? await updateProduct({...payload, id:product.id}) : await createProduct(payload);
       if (!result.ok) {
         setErrors(
-          result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} },
+          result.errors ?? { formErrors: ["message" in result && result.message ? result.message : "Erreur inconnue"], fieldErrors: {} },
         );
         return;
       }
@@ -189,7 +189,9 @@ export function ProductForm({
       console.log(data.public_id, data.asset_folder);
 
       if (!res.ok) {
-        setErrors({ formErrors: [data.error.message], fieldErrors: {} });
+        // setErrors({ formErrors: [data.error.message], fieldErrors: {} });
+        setErrors({ formErrors: [data.error?.message ?? "L'upload de l'image a échoué"], fieldErrors: {} });
+
         return;
       }
       //ici secure_url qui vient de cloudinary sert jsute a afficher limage
@@ -202,15 +204,7 @@ export function ProductForm({
   };
 
   const onEditRemoveImage = async (img: ImageRow) => {
-    if (!img) return;
-    if (!img.dbId) {
-      // const result = await removeProductImage({ id: img.dbId! });
-      // console.log("le result",result)
-      // if (!result.ok) {
-      //   setErrors(
-      //     result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} },
-      //   );
-        // return;
+    if (!img.dbId) {     
         deleteUploadedImage(img.publicId);
       }
     setImages((prev) => prev.filter((row) => row.id !== img.id));
@@ -488,7 +482,6 @@ export function ProductForm({
             key={img.id}
             className="flex flex-wrap items-end gap-3 rounded-sm border border-neutral-200 p-3"
           >
-            <div className="flex-1">
               {img.url && (
                 <div className="relative size-10">
                   <Image
@@ -500,6 +493,7 @@ export function ProductForm({
                   />
                 </div>
               )}
+            <div className="flex-1">
               <input
                 type="file"
                 //value={img.url}

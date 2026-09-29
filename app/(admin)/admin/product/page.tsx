@@ -1,5 +1,8 @@
 import { listCategories } from "@/features/category/queries";
-import { countTotalProducts, listProducts } from "@/features/product/queries";
+import {
+  countTotalProducts,
+  listAdminProducts,
+} from "@/features/product/queries";
 import { cn, formatPrice } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
 import {
@@ -16,6 +19,7 @@ import React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { getPageNumbers } from "@/lib/pagination";
 import { RotateCcw } from "lucide-react";
+import ProductDetailsDialog from "@/features/product/components/ProductDetailsDialog";
 
 const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   const { search, category, status, priceMin, priceMax, size, color, page } =
@@ -23,7 +27,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   const currentPage = Number(page) || 1;
   const searchQuery = typeof search === "string" ? search : undefined;
   const [products, totalCount, categories] = await Promise.all([
-    listProducts({
+    listAdminProducts({
       categorySlug: typeof category === "string" ? category : undefined,
       pageNumber: Number(page || 1),
       search: searchQuery,
@@ -200,13 +204,16 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
                     {p.isActive ? "Actif" : "Inactif"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/product/${p.slug}/edit`}
-                    className="font-medium text-primary hover:text-primary-hover"
-                  >
-                    Modifier
-                  </Link>
+                <td className="pr-5 py-3 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <ProductDetailsDialog product={p} />
+                    <Link
+                      href={`/admin/product/${p.slug}/edit`}
+                      className="font-medium text-primary hover:text-primary-hover"
+                    >
+                      Modifier
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
