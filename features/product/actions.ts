@@ -83,6 +83,80 @@ export async function createProduct(data: CreateProductInput) {
   };
 }
 
+// export async function updateProduct(data: UpdateProductInput) {
+//   const parsed = UpdateProductInputSchema.safeParse(data);
+//   if (!parsed.success) {
+//     return { ok: false, errors: z.flattenError(parsed.error) };
+//   }
+
+//   try {
+//     const product = await prisma.product.findUnique({
+//       where: {
+//         id: parsed.data.id,
+//       },
+//       include:{
+//         images:true,
+//         variants:true
+//       }
+//     });
+
+//     if (!product) throw new Error("Product not found");
+
+//     const imagesSent = parsed.data.images
+//     const existingImagesById = new Map(product.images.map((img)=>[img.id, img]))//ceci cree un dictionnnaire avec l'id en key et limage en value et faire existingImagesId.get(unId) renvoie soit limage en base soit undefined si rien
+//     const imagesToBeCreated = []
+//     const imagesToBeUpdated = []
+//     const imagesToBeDeleted = []
+//     if(imagesSent){
+
+//       for(const img of imagesSent){
+//         if (img.dbId && (existingImagesById.has(img.dbId) )){
+//           imagesToBeUpdated.push(img)
+//         }
+//         else{
+//           imagesToBeCreated.push(img)
+//         }
+        
+//       }
+//     }
+
+//     const productImages = product.images
+
+
+
+//     const updatedProduct = await prisma.product.update({
+//       where: {
+//         id: parsed.data.id,
+//       },
+//       data: {
+//         name: parsed.data.name,
+//         description: parsed.data.description,
+//         categoryId: parsed.data.categoryId,
+//         basePrice: parsed.data.basePrice,
+//         promoPrice: parsed.data.promoPrice,
+//         isActive: parsed.data.isActive,
+//         isFeatured: parsed.data.isFeatured,
+//         isNew: parsed.data.isNew,
+//         isBestSeller: parsed.data.isBestSeller,
+//         seoTitle: parsed.data.seoTitle,
+//         seoDescription: parsed.data.seoDescription,
+//       },
+//     });
+
+//     return {
+//       ok: true,
+//       data: [updatedProduct],
+//       message: "Product updated successfully",
+//     };
+//   } catch (err) {
+//     return {
+//       ok: false,
+//       message: err instanceof Error ? err.message : "error occured",
+//     };
+//   }
+// }
+
+
 export async function updateProduct(data: UpdateProductInput) {
   const parsed = UpdateProductInputSchema.safeParse(data);
   if (!parsed.success) {
@@ -91,44 +165,118 @@ export async function updateProduct(data: UpdateProductInput) {
 
   try {
     const product = await prisma.product.findUnique({
-      where: {
-        id: parsed.data.id,
-      },
+      where: { id: parsed.data.id },
+      include: { images: true },
     });
 
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error("Produit introuvable");
 
-    const updatedProduct = await prisma.product.update({
-      where: {
-        id: parsed.data.id,
-      },
-      data: {
-        name: parsed.data.name,
-        description: parsed.data.description,
-        categoryId: parsed.data.categoryId,
-        basePrice: parsed.data.basePrice,
-        promoPrice: parsed.data.promoPrice,
-        isActive: parsed.data.isActive,
-        isFeatured: parsed.data.isFeatured,
-        isNew: parsed.data.isNew,
-        isBestSeller: parsed.data.isBestSeller,
-        seoTitle: parsed.data.seoTitle,
-        seoDescription: parsed.data.seoDescription,
-      },
+    // ---------- 1. Calcul : quoi créer / mettre à jour / supprimer ----------
+    const imagesSent = parsed.data.images;
+    type SentImage = NonNullable<typeof imagesSent>[number];
+
+    const existingImages = new Map(product.images.map((img) => [img.id, img]));
+
+    const imagesToBeCreated: SentImage[] = [];
+    const imagesToBeUpdated: (SentImage & { dbId: string })[] = [];//le type veut dire une images envoyees dont on est sur qu'elle a un dbId
+    let imagesToBeDeleted: typeof product.images = [];
+    const publicIdsToDestroy: string[] = [];
+
+    if (imagesSent) {
+      for (const img of imagesSent) {
+        if (!img.dbId) {
+          imagesToBeCreated.push(img);
+        } else if (existingImages.has(img.dbId)) {
+          imagesToBeUpdated.push({ ...img, dbId: img.dbId });//on a du faire dbId:img.dbId malgre le fait k ...img spread le dbId c a cause de ts et aussi le dbId:img.dbId va ecraser le dbId du spread
+
+          // Image remplacée : l'ancien fichier Cloudinary devient inutile
+          const old = existingImages.get(img.dbId)!;
+          if (old.publicId && old.publicId !== img.publicId) {
+            publicIdsToDestroy.push(old.publicId);
+          }
+        } else {
+          // dbId qui n'appartient pas à ce produit => requete anormale
+          throw new Error("Image invalide");
+        }
+      }
+
+      // En base mais plus dans le formulaire => a supprimer
+      const sentIds = new Set(imagesSent.map((img) => img.dbId).filter(Boolean));//ici filter(Boolean) permet denlever les undefined
+      imagesToBeDeleted = product.images.filter((img) => !sentIds.has(img.id));
+
+      for (const img of imagesToBeDeleted) {
+        if (img.publicId) publicIdsToDestroy.push(img.publicId);
+      }
+    }
+
+    // ---------- 2. Écriture en base : tout ou rien ----------
+    const updatedProduct = await prisma.$transaction(async (tx) => {
+      const updated = await tx.product.update({
+        where: { id: product.id },
+        data: {
+          name: parsed.data.name,
+          description: parsed.data.description,
+          categoryId: parsed.data.categoryId,
+          basePrice: parsed.data.basePrice,
+          promoPrice: parsed.data.promoPrice,
+          isActive: parsed.data.isActive,
+          isFeatured: parsed.data.isFeatured,
+          isNew: parsed.data.isNew,
+          isBestSeller: parsed.data.isBestSeller,
+          seoTitle: parsed.data.seoTitle,
+          seoDescription: parsed.data.seoDescription,
+        },
+      });
+
+      if (imagesToBeDeleted.length > 0) {
+        await tx.productImage.deleteMany({
+          where: { id: { in: imagesToBeDeleted.map((img) => img.id) } },
+        });
+      }
+
+      for (const { dbId, ...img } of imagesToBeUpdated) {
+        await tx.productImage.update({
+          where: { id: dbId },
+          data: img,
+        });
+      }
+
+      if (imagesToBeCreated.length > 0) {
+        await tx.productImage.createMany({
+          data: imagesToBeCreated.map(({ dbId, ...img }) => ({
+            ...img,
+            productId: product.id,
+          })),
+        });
+      }
+
+      return updated;
     });
+
+    // ---------- 3. Cloudinary : seulement APRÈS le succès en base ----------
+    // allSettled : un destroy qui échoue ne fait pas échouer la mise à jour
+    await Promise.allSettled(
+      publicIdsToDestroy.map((id) => cloudinary.uploader.destroy(id)),
+    );
+
+    revalidatePath("/admin/product");
+    revalidatePath(`/boutique/${product.slug}`);
 
     return {
       ok: true,
       data: [updatedProduct],
-      message: "Product updated successfully",
+      message: "Produit mis à jour",
     };
   } catch (err) {
     return {
       ok: false,
-      message: err instanceof Error ? err.message : "error occured",
+      message: err instanceof Error ? err.message : "Une erreur est survenue",
     };
   }
 }
+
+
+
 
 export async function deleteProduct(id: string) {
   try {

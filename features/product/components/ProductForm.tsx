@@ -7,6 +7,7 @@ import {
   deleteUploadedImage,
   generateCloudinarySignature,
   removeProductImage,
+  updateProduct,
 } from "@/features/product/actions";
 import type { CategoryListItem } from "@/features/category/queries";
 import { Images } from "lucide-react";
@@ -132,7 +133,7 @@ export function ProductForm({
     e.preventDefault();
     setErrors(null);
 
-    const payload = {
+    let payload = {
       name,
       description: description || undefined,
       categoryId,
@@ -152,7 +153,9 @@ export function ProductForm({
     };
 
     startTransition(async () => {
-      const result = await createProduct(payload);
+   
+      
+      const result = product ? await updateProduct({...payload, id:product.id}) : await createProduct(payload);
       if (!result.ok) {
         setErrors(
           result.errors ?? { formErrors: ["Erreur inconnue"], fieldErrors: {} },
@@ -427,12 +430,13 @@ export function ProductForm({
               <input
                 type="number"
                 required
+                readOnly={!!v.dbId} 
                 min={0}
                 value={v.stock}
                 onChange={(e) =>
                   updateVariant(v.id, "stock", Number(e.target.value))
                 }
-                className="w-24 rounded-sm border border-neutral-300 px-2 py-1.5 text-sm"
+                className="w-24 rounded-sm border border-neutral-300 px-2 py-1.5 text-sm read-only:bg-neutral-200"
               />
             </div>
             <div>

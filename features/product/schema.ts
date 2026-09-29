@@ -36,8 +36,21 @@ export const CreateProductSchema = z
     path: ["promoPrice"],
   });
 
-export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 
+export const AddProductImageSchema = z.object({
+  productId: z.string().min(1),
+  url: z.string().min(1),
+  publicId: z.string().optional(),
+  altText: z.string().optional(),
+});
+
+export const UpdateProductImageSchema = z.object({
+  dbId: z.string().min(1).optional(), //dbId car dans ProductForm les images existantes on un dbId et l'id est kept for le id: randomUIID() de lobjet qui permet de lindentifier
+  url: z.string().min(1),
+  publicId: z.string().optional(),
+  altText: z.string().optional(),
+  position:z.number()
+});
 
 export const UpdateProductInputSchema = z.object({
   id: z.string().min(1),
@@ -52,23 +65,15 @@ export const UpdateProductInputSchema = z.object({
   isBestSeller: z.boolean().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
-  // images:z.array(AddProductImageSchema).optional()
+  images:z.array(UpdateProductImageSchema).min(1).optional()
 });
 
-export const AddProductImageSchema = z.object({
-  productId: z.string().min(1),
-  url: z.string().min(1),
-  publicId: z.string().optional(),
-  altText: z.string().optional(),
-});
 export const RemoveProductImageSchema = z.object({
   id: z.string().min(1),
 });
 
 
-
-
-
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 export type AddProductImageInput = z.infer<typeof AddProductImageSchema>;
 export type RemoveProductImageInput = z.infer<typeof RemoveProductImageSchema>;
 export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>;
