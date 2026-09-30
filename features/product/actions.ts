@@ -367,46 +367,37 @@ export async function updateProduct(data: UpdateProductInput) {
 
 
 
-export async function deleteProduct(id: string) {
+export async function setProductActive(id: string, isActive: boolean) {
+  // TODO: vérifier la session admin (module auth)
+  const parsed = z
+    .object({ id: z.string().min(1), isActive: z.boolean() })
+    .safeParse({ id, isActive });
+
+  if (!parsed.success) {
+    return { ok: false, message: "Données invalides" };
+  }
+
   try {
-    const product = await prisma.product.findUnique({
-      where: {
-        id: id,
-      },
-      include: {
-        images: true,
-      },
+    const product = await prisma.product.update({
+      where: { id: parsed.data.id },
+      data: { isActive: parsed.data.isActive },
     });
 
-    if (!product) throw new Error("Product not found");
-
-    for (const image of product.images) {
-      // const img = await prisma.productImage.findUnique({
-      //   where: {
-      //     id: image.id,
-      //   },
-      // });
-      if (image?.publicId) await cloudinary.uploader.destroy(image.publicId);
-    }
-
-    const result = await prisma.product.delete({
-      where: {
-        id: id,
-      },
-    });
+    revalidatePath("/admin/product");
+    revalidatePath(`/boutique/${product.slug}`);
 
     return {
       ok: true,
-      data: [result],
-      message: "Product deleted successfully",
+      message: parsed.data.isActive ? "Produit réactivé" : "Produit désactivé",
     };
   } catch (err) {
     return {
       ok: false,
-      message: err instanceof Error ? err.message : "error occured",
+      message: err instanceof Error ? err.message : "Une erreur est survenue",
     };
   }
 }
+
 
 
 // updateVariant(variantId, { sku, color, size, priceOverride }) : modification sur place, sans stock.

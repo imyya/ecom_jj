@@ -4,7 +4,7 @@ import {
   listAdminProducts,
 } from "@/features/product/queries";
 import { cn, formatPrice } from "@/lib/utils";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Pencil } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -20,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getPageNumbers } from "@/lib/pagination";
 import { RotateCcw } from "lucide-react";
 import ProductDetailsDialog from "@/features/product/components/ProductDetailsDialog";
+import ToggleProductStatus from "@/features/product/components/ToggleProductStatus";
 
 const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   const { search, category, status, priceMin, priceMax, size, color, page } =
@@ -209,10 +210,18 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
                     <ProductDetailsDialog product={p} />
                     <Link
                       href={`/admin/product/${p.slug}/edit`}
-                      className="font-medium text-primary hover:text-primary-hover"
+                      title="Modifier"
+                      aria-label={`Modifier ${p.name}`}
+                      className="inline-flex items-center justify-center rounded-sm p-1.5 text-neutral-600 hover:bg-neutral-100 hover:text-slate-900"
                     >
-                      Modifier
+                      <Pencil className="size-4" />
                     </Link>
+
+                    <ToggleProductStatus
+                      id={p.id}
+                      name={p.name}
+                      isActive={p.isActive}
+                    />
                   </div>
                 </td>
               </tr>

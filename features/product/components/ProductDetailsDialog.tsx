@@ -24,6 +24,7 @@ const ProductDetailsDialog = ({ product }: { product: AdminProductListItem }) =>
     <Dialog>
       <DialogTrigger
         aria-label={`Voir ${product.name}`}
+        title = "Voir details"
         className="inline-flex cursor-pointer items-center justify-center rounded-sm p-1.5 text-neutral-600 hover:bg-neutral-100 hover:text-slate-900"
       >
         <Eye className="size-4" />
