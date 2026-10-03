@@ -22,7 +22,6 @@ const ProductSearch = ({
 
   useEffect(()=> {
       const timeout = setTimeout(async () => {
-          console.log("the category",category)
           const results = await searchProductSuggestions(query);
       setSuggestions(results);
       setIsOpen(results.length > 0);

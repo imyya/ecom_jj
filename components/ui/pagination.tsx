@@ -9,7 +9,7 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
     <nav
       role="navigation"
       aria-label="pagination"
-      data-slot="pagination"
+      // data-slot="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
     />
@@ -53,7 +53,7 @@ function PaginationLink({
       render={
         <a
           aria-current={isActive ? "page" : undefined}
-          data-slot="pagination-link"
+          // data-slot="pagination-link"
           data-active={isActive}
           {...props}
         />

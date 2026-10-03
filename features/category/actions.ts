@@ -4,6 +4,7 @@ import { z } from "zod";
 import { CreateCategorySchema } from "./schema";
 import { slugify } from "@/lib/slugify";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 // const CreateCategorySchema = z.object({
 //   name: z.string().min(1),
@@ -13,6 +14,8 @@ import { revalidatePath } from "next/cache";
 // });
 
 export async function createCategory(formData: FormData) {
+    await requireAdmin()
+  
   const parsed = CreateCategorySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };

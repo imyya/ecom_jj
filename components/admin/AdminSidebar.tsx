@@ -1,17 +1,19 @@
+"use client"
 import Link from "next/link";
-import { redirect, usePathname } from "next/navigation";
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Package, FolderTree, ShoppingBag, LogOut, Warehouse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/actions";
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/admin/product", label: "Produits", icon: Package },
+  { href: "/admin/stock", label: "Stock", icon: Warehouse },
   { href: "/admin/category", label: "Catégories", icon: FolderTree },
   { href: "/admin/orders", label: "Commandes", icon: ShoppingBag },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({name}:{name?:string}) {
   const pathname = usePathname();
 
   return (
@@ -51,7 +53,7 @@ export function AdminSidebar() {
             <div className="flex size-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
               MA
             </div>
-            <span className="text-sm font-medium text-slate-900">Mamya Aidara</span>
+            <span className="text-sm font-medium text-slate-900">{name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}</span>
           </div>
           <button
           onClick={()=>{

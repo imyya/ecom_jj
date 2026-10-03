@@ -4,23 +4,30 @@ import {
   listAdminProducts,
 } from "@/features/product/queries";
 import { cn, formatPrice } from "@/lib/utils";
-import { ImageOff, Pencil } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRightLeft,
+  ImageOff,
+  Pencil,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
+  PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { getPageNumbers } from "@/lib/pagination";
 import { RotateCcw } from "lucide-react";
 import ProductDetailsDialog from "@/features/product/components/ProductDetailsDialog";
 import ToggleProductStatus from "@/features/product/components/ToggleProductStatus";
+
+const pageSize = Number(process.env.ELEMENTS_BY_PAGE) || 5;
 
 const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   const { search, category, status, priceMin, priceMax, size, color, page } =
@@ -56,13 +63,21 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
     listCategories(),
   ]);
 
+  // useEffect(()=>{
+
+  // },[products])
+  console.log("the page", page);
+  console.log("the total count", totalCount);
+  console.log("the products", products);
+
   const hasActiveFilters = Boolean(
     search || category || status || priceMin || priceMax || size || color,
   );
 
-  const totalPages = Math.ceil(totalCount / 5);
-  const pages = getPageNumbers(Number(page), totalPages);
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const pages = getPageNumbers(Number(currentPage), totalPages);
   const buildPageHref = (targetPage: number) => {
+    console.log("target page", targetPage);
     const params = new URLSearchParams();
     if (typeof search === "string" && search) params.set("search", search);
     if (typeof category === "string" && category)
@@ -77,9 +92,9 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
+    <div className="mx-auto max-w-8xl px-6 py-12">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Produits</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Produits</h1>
         <Link
           href="/admin/product/new"
           className="rounded-sm bg-primary px-4 py-2 text-sm font-bold text-slate-50 hover:bg-primary-hover"
@@ -152,7 +167,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
         )}
       </form>
 
-      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white mb-8">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50 text-xs font-medium text-neutral-500 uppercase tracking-wide">
@@ -237,16 +252,32 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
       )}
       <Pagination>
         <PaginationContent>
+          <PaginationItem>
+            <Link
+              href={buildPageHref(currentPage - 1)}
+              className={cn(
+                "flex items-center mr-3",
+                "hover:bg-neutral-100",
+                currentPage == 1 ? "pointer-cursor opacity-5" : "",
+              )}
+              // aria-disabled={Number(page) === totalPages}
+              // tabIndex={Number(page) === totalPages ? -1 : undefined}
+              // className={Number(page) === totalPages? "pointer-cursor opacity-5" : undefined}
+            >
+              <ChevronLeft className="size-4" />
+              <p className="text-sm font-semibold">Previous</p>
+            </Link>
+          </PaginationItem>
           {pages.map((p, i) => {
             if (p === "ellipsis") {
               return (
-                <PaginationItem>
+                <PaginationItem key={i}>
                   <PaginationEllipsis />
                 </PaginationItem>
               );
             } else {
               return (
-                <PaginationItem key={i}>
+                <PaginationItem key={i} >
                   <Link
                     href={buildPageHref(p)}
                     className={buttonVariants({
@@ -262,6 +293,22 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
               );
             }
           })}
+          <PaginationItem>
+            <Link
+              href={buildPageHref(currentPage + 1)}
+              // aria-disabled={Number(page) === totalPages}
+              // tabIndex={Number(page) === totalPages ? -1 : undefined}
+              className={cn(
+                "flex items-center mr-3",
+                "hover:bg-neutral-100", 
+                currentPage === totalPages ? "pointer-cursor opacity-5" : "",
+              )}
+              //  className=`{currentPage === totalPages? "pointer-none opacity-5" : undefined}`
+            >
+              <p className="text-sm font-semibold">Next</p>
+              <ChevronRight className="size-4" />
+            </Link>
+          </PaginationItem>
         </PaginationContent>
       </Pagination>
     </div>

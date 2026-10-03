@@ -17,6 +17,7 @@ import cloudinary from "@/lib/cloudinary";
 import { z } from "zod";
 import { Prisma, StockMovementType } from "@/generated/prisma";
 import ProductActions from "./components/ProductActions";
+import { requireAdmin } from "@/lib/auth";
 
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "";
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "";
@@ -41,6 +42,7 @@ export async function searchProductSuggestions(query: string) {
 }
 
 export async function createProduct(data: CreateProductInput) {
+ const admin = await requireAdmin()
   const parsed = CreateProductSchema.safeParse(data);
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
@@ -50,7 +52,7 @@ export async function createProduct(data: CreateProductInput) {
   const variants =  parsed.data.variants.map((v)=>({
           ...v,
            stockMovements: v.stock >0 ? {
-            create:{type:StockMovementType.IN, quantity:v.stock, reason: "Stock initial"}
+            create:{type:StockMovementType.IN, quantity:v.stock, reason: "Stock initial", adminId:admin.id}
           }: undefined // pr gerer le cas ou on cree une variante avec stock 0 on veut pas creer un mouvement IN car techniquement rien nest entree
 
         }))
@@ -96,81 +98,10 @@ export async function createProduct(data: CreateProductInput) {
  
 }
 
-// export async function updateProduct(data: UpdateProductInput) {
-//   const parsed = UpdateProductInputSchema.safeParse(data);
-//   if (!parsed.success) {
-//     return { ok: false, errors: z.flattenError(parsed.error) };
-//   }
-
-//   try {
-//     const product = await prisma.product.findUnique({
-//       where: {
-//         id: parsed.data.id,
-//       },
-//       include:{
-//         images:true,
-//         variants:true
-//       }
-//     });
-
-//     if (!product) throw new Error("Product not found");
-
-//     const imagesSent = parsed.data.images
-//     const existingImagesById = new Map(product.images.map((img)=>[img.id, img]))//ceci cree un dictionnnaire avec l'id en key et limage en value et faire existingImagesId.get(unId) renvoie soit limage en base soit undefined si rien
-//     const imagesToBeCreated = []
-//     const imagesToBeUpdated = []
-//     const imagesToBeDeleted = []
-//     if(imagesSent){
-
-//       for(const img of imagesSent){
-//         if (img.dbId && (existingImagesById.has(img.dbId) )){
-//           imagesToBeUpdated.push(img)
-//         }
-//         else{
-//           imagesToBeCreated.push(img)
-//         }
-        
-//       }
-//     }
-
-//     const productImages = product.images
-
-
-
-//     const updatedProduct = await prisma.product.update({
-//       where: {
-//         id: parsed.data.id,
-//       },
-//       data: {
-//         name: parsed.data.name,
-//         description: parsed.data.description,
-//         categoryId: parsed.data.categoryId,
-//         basePrice: parsed.data.basePrice,
-//         promoPrice: parsed.data.promoPrice,
-//         isActive: parsed.data.isActive,
-//         isFeatured: parsed.data.isFeatured,
-//         isNew: parsed.data.isNew,
-//         isBestSeller: parsed.data.isBestSeller,
-//         seoTitle: parsed.data.seoTitle,
-//         seoDescription: parsed.data.seoDescription,
-//       },
-//     });
-
-//     return {
-//       ok: true,
-//       data: [updatedProduct],
-//       message: "Product updated successfully",
-//     };
-//   } catch (err) {
-//     return {
-//       ok: false,
-//       message: err instanceof Error ? err.message : "error occured",
-//     };
-//   }
-// }
 
 
 export async function updateProduct(data: UpdateProductInput) {
+  const admin = await requireAdmin()
   const parsed = UpdateProductInputSchema.safeParse(data);
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
@@ -331,6 +262,7 @@ export async function updateProduct(data: UpdateProductInput) {
                       type: StockMovementType.IN,
                       quantity: v.stock,
                       reason: "Stock initial",
+                      adminId:admin.id
                     },
                   }
                 : undefined,
@@ -368,7 +300,7 @@ export async function updateProduct(data: UpdateProductInput) {
 
 
 export async function setProductActive(id: string, isActive: boolean) {
-  // TODO: vérifier la session admin (module auth)
+    await requireAdmin()
   const parsed = z
     .object({ id: z.string().min(1), isActive: z.boolean() })
     .safeParse({ id, isActive });
@@ -407,6 +339,8 @@ export async function setProductActive(id: string, isActive: boolean) {
 // export async function 
 
 export async function addProductImage(data: AddProductImageInput) {
+    await requireAdmin()
+
   const parsed = AddProductImageSchema.safeParse(data);
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
@@ -440,6 +374,8 @@ export async function addProductImage(data: AddProductImageInput) {
 }
 
 export async function removeProductImage(data: RemoveProductImageInput) {
+    await requireAdmin()
+
   const parsed = RemoveProductImageSchema.safeParse(data);
   if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
@@ -469,6 +405,8 @@ export async function removeProductImage(data: RemoveProductImageInput) {
 }
 
 export async function deleteUploadedImage(publicId: string) {
+    await requireAdmin()
+
   const parsed= z.string().min(1).safeParse(publicId)
    if (!parsed.success) {
     return { ok: false, errors: z.flattenError(parsed.error) };
@@ -506,8 +444,7 @@ export async function deleteUploadedImage(publicId: string) {
 }
 
 export const generateCloudinarySignature = async () => {
-  // we should verify it's admin first
-
+  await requireAdmin()
   const timestamp = Math.round(Date.now() / 1000);
   const folder = CLOUDINARY_UPLOAD_FOLDER;
   const signature = cloudinary.utils.api_sign_request(

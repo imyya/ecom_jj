@@ -12,9 +12,12 @@ import ProductCard from "@/features/product/components/ProductCard";
 import ProductSearch from "@/features/product/components/ProductSearch";
 import { countTotalProducts, listProducts } from "@/features/product/queries";
 import { getPageNumbers } from "@/lib/pagination";
-import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+
+const pageSize = Number(process.env.ELEMENTS_BY_PAGE) || 5;
 
 export default async function Page({ searchParams }: PageProps<"/boutique">) {
   const { search, category, priceMin, priceMax, size, color, page } =
@@ -23,7 +26,7 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
   const searchQuery = typeof search === "string" ? search : undefined;
 
   const [products, totalCount] = await Promise.all([
-    listProducts({
+  listProducts({
       categorySlug: typeof category === "string" ? category : undefined,
       pageNumber: Number(page || 1),
       search: searchQuery,
@@ -47,11 +50,31 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
       color: typeof color === "string" ? color : undefined,
     }),
   ]);
-  const totalPages = Math.ceil(totalCount / 5);
-  const pages = getPageNumbers(Number(page), totalPages);
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const pages = getPageNumbers(Number(currentPage), totalPages);
+    // const pages = getPageNumbers(Number(currentPage ), totalPages);
+
+   console.log("the page", page);
+  console.log("the total count", totalCount);
+  console.log("the products", products);
   //   const totalNumber = await countTotalProducts({
   //     categorySlug: typeof category === "string" ? category : undefined,
   //   });
+
+    const buildPageHref = (targetPage: number) => {
+    console.log("target page", targetPage);
+    const params = new URLSearchParams();
+    if (typeof search === "string" && search) params.set("search", search);
+    if (typeof category === "string" && category)
+      params.set("category", category);
+    if (typeof status === "string" && status) params.set("status", status);
+    if (typeof priceMin === "string" && priceMin)
+      params.set("priceMin", priceMin);
+    if (typeof priceMax === "string" && priceMax)
+      params.set("priceMax", priceMax);
+    params.set("page", String(targetPage));
+    return `/boutique?${params.toString()}`;
+  };
 
   return (
     <Container className="py-12 lg:py-16">
@@ -85,20 +108,36 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
           ))}
         </div>
       )}
-      <Pagination>
+        <Pagination>
         <PaginationContent>
+          <PaginationItem>
+            <Link
+              href={buildPageHref(currentPage - 1)}
+              className={cn(
+                "flex items-center mr-3",
+                "hover:bg-neutral-100",
+                currentPage == 1 ? "pointer-cursor opacity-5" : "",
+              )}
+              // aria-disabled={Number(page) === totalPages}
+              // tabIndex={Number(page) === totalPages ? -1 : undefined}
+              // className={Number(page) === totalPages? "pointer-cursor opacity-5" : undefined}
+            >
+              <ChevronLeft className="size-4" />
+              <p className="text-sm font-semibold">Previous</p>
+            </Link>
+          </PaginationItem>
           {pages.map((p, i) => {
             if (p === "ellipsis") {
               return (
-                <PaginationItem>
+                <PaginationItem key={i}>
                   <PaginationEllipsis />
                 </PaginationItem>
               );
             } else {
               return (
-                <PaginationItem key={i}>
+                <PaginationItem key={i} >
                   <Link
-                    href={`/boutique?page=${p}${category ? `&category=${category}` : ""}`}
+                    href={buildPageHref(p)}
                     className={buttonVariants({
                       variant: currentPage === p ? "outline" : "ghost",
                       size: "icon",
@@ -112,6 +151,22 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
               );
             }
           })}
+          <PaginationItem>
+            <Link
+              href={buildPageHref(currentPage + 1)}
+              // aria-disabled={Number(page) === totalPages}
+              // tabIndex={Number(page) === totalPages ? -1 : undefined}
+              className={cn(
+                "flex items-center mr-3",
+                "hover:bg-neutral-100", 
+                currentPage === totalPages ? "pointer-cursor opacity-5" : "",
+              )}
+              //  className=`{currentPage === totalPages? "pointer-none opacity-5" : undefined}`
+            >
+              <p className="text-sm font-semibold">Next</p>
+              <ChevronRight className="size-4" />
+            </Link>
+          </PaginationItem>
         </PaginationContent>
       </Pagination>
     </Container>

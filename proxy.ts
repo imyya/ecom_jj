@@ -6,7 +6,6 @@ import { SESSION_COOKIE, verifyAccessToken } from './lib/session'
 export async function proxy(request: NextRequest) {
     const accessToken = request.cookies.get(SESSION_COOKIE)?.value
     const verifiedAccessToken = await verifyAccessToken(accessToken)
-    console.log("les gars")
     if(!verifiedAccessToken){
       return NextResponse.redirect(new URL("/login", request.nextUrl))
     }

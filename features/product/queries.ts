@@ -2,13 +2,16 @@ import "server-only";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 
+const  pageSize = Number(process.env.ELEMENTS_BY_PAGE) || 5 
+
+
 function buildWhere(params?: {
   categorySlug?: string;
   search?: string;
   isActive?: boolean;
   size?: string;
   color?: string;
- priceMin?: number;
+  priceMin?: number;
   priceMax?: number
 }): Prisma.ProductWhereInput {
   return {
@@ -63,8 +66,8 @@ export const listProducts = async (params?: {
       },
       category: true,
     },
-    skip: params?.pageNumber ? (params?.pageNumber - 1) * 5 : 0,
-    take: 5,
+    skip: params?.pageNumber ? (params?.pageNumber - 1) * pageSize : 0,
+    take: pageSize,
     orderBy: {
       createdAt: "desc",
     },
@@ -86,12 +89,12 @@ export const listAdminProducts = async (params?: {
   return await prisma.product.findMany({
     where: buildWhere(params),
     include: {
-      images: { orderBy: { position: "asc" } }, // toutes les images, pour le modal
+      images: { orderBy: { position: "asc" } },
       category: true,
-      variants: { orderBy: { sku: "asc" } },    // toutes, y compris désactivées : c'est l'admin
+      variants: { orderBy: { sku: "asc" } },
     },
-    skip: params?.pageNumber ? (params.pageNumber - 1) * 5 : 0,
-    take: 5,
+    skip: params?.pageNumber ? (params.pageNumber - 1) * pageSize : 0,
+    take: pageSize,
     orderBy: { createdAt: "desc" },
   });
 };
