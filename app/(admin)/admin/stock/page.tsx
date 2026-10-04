@@ -30,6 +30,7 @@ import {
   ListVariants,
 } from "@/features/stock/queries";
 import { SearchBar } from "@/features/stock/components/SearchBar";
+import { AdjustStockSheet } from "@/features/stock/components/AdjustStockSheet";
 const pageSize = Number(process.env.ELEMENTS_BY_PAGE) || 5;
 
 const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
@@ -40,11 +41,13 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
   const [variants, totalVariants, totalCount, lowStock, outOfStock] =
     await Promise.all([
       ListVariants({
+        search: typeof search === "string" ? search : undefined,
         status: typeof status === "string" ? status : undefined,
-        pageNumber: Number(page || 1),
+        pageNumber: currentPage,
       }),
       countAllVariants(),
       countTotalVariants({
+        search: typeof search === "string" ? search : undefined,
         status: typeof status === "string" ? status : undefined,
       }),
       ListLowStockVariants(),
@@ -56,7 +59,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
   const buildPageHref = (targetPage: number) => {
     const params = new URLSearchParams();
     if (typeof status === "string" && status) params.set("status", status);
-    // if (typeof search === "string" && search) params.set("search", search);
+    if (typeof search === "string" && search) params.set("search", search);
     params.set("page", String(targetPage));
     return `/admin/stock?${params.toString()}`;
   };
@@ -92,14 +95,12 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
         </div>
       </div>
       <div className="flex justify-between mt-10">
-
-      <div className="">
-      <SearchBar/>
-
-      </div>
-      <div className="mb-6 flex justify-end flex-wrap gap-2">
-        <StockFilter />
-      </div>
+        <div className="">
+          <SearchBar />
+        </div>
+        <div className="mb-6 flex justify-end flex-wrap gap-2">
+          <StockFilter />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
@@ -151,10 +152,14 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
                   <span
                     className={cn(
                       "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      v.stock < 10 ? " text-red-700" : "text-slate-900",
+                      v.stock <= v.reservedStock
+                        ? "text-red-700"
+                        : v.stock - v.reservedStock <= v.minStock
+                          ? "text-orange-500"
+                          : "text-slate-900",
                     )}
                   >
-                    {v.stock}
+                    {v.stock - v.reservedStock}
                   </span>
                 </td>
                 <td className="px-4 text-neutral-500">{v.reservedStock}</td>
@@ -162,19 +167,32 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
                   <span
                     className={cn(
                       "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      v.stock === 0
+                      v.stock <= v.reservedStock
                         ? "bg-red-100 text-pink-400"
-                        : v.stock <= 10
+                        : v.stock - v.reservedStock <= v.minStock
                           ? "bg-orange-100 text-orange-400"
                           : "bg-neutral-100 text-neutral-500",
                     )}
                   >
-                    {v.stock === 0
+                    {v.stock <= v.reservedStock
                       ? "Rupture de stock"
-                      : v.stock <= 10
+                      : v.stock - v.reservedStock <= v.minStock
                         ? "Stock faible"
                         : "_"}
                   </span>
+                </td>
+                <td className="pr-5 py-3 text-right">
+                  <AdjustStockSheet
+                    variant={{
+                      id: v.id,
+                      sku: v.sku,
+                      color: v.color,
+                      size: v.size,
+                      stock: v.stock,
+                      reservedStock: v.reservedStock,
+                      productName: v.product.name,
+                    }}
+                  />
                 </td>
               </tr>
             ))}
@@ -195,7 +213,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
               className={cn(
                 "flex items-center mr-3",
                 "hover:bg-neutral-100",
-                currentPage == 1 ? "pointer-cursor opacity-5" : "",
+                currentPage == 1 ? "pointer-events-none : opacity-50" : "",
               )}
               // aria-disabled={Number(page) === totalPages}
               // tabIndex={Number(page) === totalPages ? -1 : undefined}
@@ -238,7 +256,9 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
               className={cn(
                 "flex items-center mr-3",
                 "hover:bg-neutral-100",
-                currentPage === totalPages ? "pointer-cursor opacity-5" : "",
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : "",
               )}
               //  className=`{currentPage === totalPages? "pointer-none opacity-5" : undefined}`
             >

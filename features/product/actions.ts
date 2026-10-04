@@ -363,7 +363,7 @@ export async function addProductImage(data: AddProductImageInput) {
       },
     });
 
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/product");
     return { ok: true, data: [image], message: "image added successfully" };
   } catch (err) {
     return {
