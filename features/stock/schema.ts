@@ -19,3 +19,4 @@ export const AdjustStockSchema = z.object({
 });
 
 export type AdjustStockInput = z.infer<typeof AdjustStockSchema>;
+export type StockAdjustmentReason = (typeof STOCK_ADJUSTMENT_REASONS)[number];

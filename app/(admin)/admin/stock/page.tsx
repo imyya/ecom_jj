@@ -4,7 +4,13 @@ import {
   listAdminProducts,
 } from "@/features/product/queries";
 import { cn, formatPrice } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, ImageOff, Pencil } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  History,
+  ImageOff,
+  Pencil,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -68,14 +74,22 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
     <div className="mx-auto max-w-8xl px-6 py-12">
       <div className="mb-4 flex flex-col gap-3">
         <h1 className="text-3xl font-bold text-slate-900">Stock</h1>
-        <div className="flex gap-3">
-          <p className="text-sm text-neutral-500">
-            {totalVariants} variantes suivies
-          </p>
-          <span className=""> · </span>
-          <p className="text-sm text-neutral-500">
-            {outOfStock + lowStock} en alerte
-          </p>
+        <div className="flex justify-between">
+          <div className="flex gap-3">
+            <p className="text-sm text-neutral-500">
+              {totalVariants} variantes suivies
+            </p>
+            <span className=""> · </span>
+            <p className="text-sm text-neutral-500">
+              {outOfStock + lowStock} en alerte
+            </p>
+          </div>
+          <Link
+            href="/admin/stock/historique"
+            className="rounded-sm bg-primary px-4 py-2 text-sm font-bold text-slate-50 hover:bg-primary-hover"
+          >
+            Historique
+          </Link>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 ">
@@ -181,18 +195,27 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
                         : "_"}
                   </span>
                 </td>
-                <td className="pr-5 py-3 text-right">
-                  <AdjustStockSheet
-                    variant={{
-                      id: v.id,
-                      sku: v.sku,
-                      color: v.color,
-                      size: v.size,
-                      stock: v.stock,
-                      reservedStock: v.reservedStock,
-                      productName: v.product.name,
-                    }}
-                  />
+                <td className=" p-4">
+                  <div className="flex gap-2 justify-center items-center">
+                    <AdjustStockSheet
+                      variant={{
+                        id: v.id,
+                        sku: v.sku,
+                        color: v.color,
+                        size: v.size,
+                        stock: v.stock,
+                        reservedStock: v.reservedStock,
+                        productName: v.product.name,
+                      }}
+                    />
+                    <Link
+                      href={`/admin/stock/historique?variantId=${v.id}`}
+                      className=""
+                      title="Voir historique"
+                    >
+                      <History className="size-4 hover:bg-neutral-100"/>
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -202,7 +225,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
 
       {variants.length === 0 && (
         <p className="mt-6 text-center text-neutral-500">
-          Aucun produit ne correspond à ces filtres.
+          Aucun produit ou variante ne correspond à ces filtres.
         </p>
       )}
       <Pagination>

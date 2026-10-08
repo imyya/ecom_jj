@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { AlertTriangle, Minus, Plus, SlidersHorizontal } from "lucide-react";
 import {
   Sheet,
@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { StockAdjustmentReason } from "../schema";
+import { Value } from "@/generated/prisma/runtime/client";
+import { adjustStock } from "../actions";
 
 const REASONS = [
   { value: "RECEPTION", label: "Réception fournisseur" },
@@ -36,12 +39,13 @@ type AdjustStockSheetProps = {
     productName: string;
   };
 };
-
 export function AdjustStockSheet({ variant }: AdjustStockSheetProps) {
   const [open, setOpen] = useState(false);
   const [delta, setDelta] = useState(0);
-  const [reason, setReason] = useState("");
-
+  const [reason, setReason] = useState<StockAdjustmentReason | "">("");
+  const [note,setNote] = useState("")
+  const [error, setError]  = useState("")
+  const [isPending, startTransition] = useTransition();
   const newStock = variant.stock + delta;
   const available = variant.stock - variant.reservedStock;
   const newAvailable = newStock - variant.reservedStock;
@@ -53,8 +57,30 @@ export function AdjustStockSheet({ variant }: AdjustStockSheetProps) {
     if (!next) {
       setDelta(0);
       setReason("");
+      setNote("")
+      setError("")
     }
   };
+
+  const handleOnSumbit=()=>{
+    if(!reason) return
+    const payload = {
+        variantId: variant.id,
+        delta:delta,
+        reason:reason,
+        note: note
+    }
+    startTransition(async()=>{
+        const result = await adjustStock({...payload, note: note || undefined})
+         if(result.ok)
+         {
+             handleOpenChange(false)
+             return
+         }
+         setError(result.message)
+    } )
+
+  }
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -71,7 +97,7 @@ export function AdjustStockSheet({ variant }: AdjustStockSheetProps) {
           className="flex h-full flex-col"
           onSubmit={(e) => {
             e.preventDefault();
-            // TODO : brancher la server action ici
+            handleOnSumbit()
           }}
         >
           <SheetHeader className="border-b border-neutral-200">
@@ -153,7 +179,7 @@ export function AdjustStockSheet({ variant }: AdjustStockSheetProps) {
                 name="reason"
                 required
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                onChange={(e) => setReason(e.target.value as StockAdjustmentReason)}
                 className="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
               >
                 <option value="" disabled>
@@ -172,18 +198,20 @@ export function AdjustStockSheet({ variant }: AdjustStockSheetProps) {
               <Label htmlFor="note">
                 Note <span className="font-normal text-neutral-400">(optionnel)</span>
               </Label>
-              <Textarea id="note" name="note" placeholder="Ex : carton abîmé à la livraison" />
+              <Textarea onChange={(e) => setNote(e.target.value)} id="note" name="note" value={note} placeholder="Ex : carton abîmé à la livraison" />
             </div>
 
             <input type="hidden" name="variantId" value={variant.id} />
+            <p className="text-red-700">{error}</p>
+
           </div>
 
           <SheetFooter className="flex-row justify-end gap-2 border-t border-neutral-200">
             <SheetClose render={<Button type="button" variant="outline" />}>
               Annuler
             </SheetClose>
-            <Button type="submit" disabled={delta === 0 || !reason || goesBelowReserved}>
-              Confirmer l'ajustement
+            <Button type="submit" disabled={delta === 0 || !reason || goesBelowReserved || isPending}>
+              { isPending ? "Enregistrement ..." :"Confirmer l'ajustement"}
             </Button>
           </SheetFooter>
         </form>

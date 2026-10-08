@@ -145,6 +145,7 @@ model StockMovement {
   admin     Admin?  @relation(fields: [adminId], references: [id])
   adminId   String?
   reason    String // "Réception", "Vente", "Réapprovisionnement", "Ajustement"...
+  note      String?
   createdAt DateTime          @default(now())
 
   @@index([variantId])

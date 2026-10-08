@@ -153,8 +153,6 @@ export function ProductForm({
     };
 
     startTransition(async () => {
-   
-      
       const result = product ? await updateProduct({...payload, id:product.id}) : await createProduct(payload);
       if (!result.ok) {
         setErrors(
