@@ -10,8 +10,6 @@ import {
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,7 +34,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock/historique">) => {
   const currentPage = Number(page) || 1;
   const fromDate = typeof from === "string" ? new Date(from) : undefined;
   const toDate = typeof to === "string" ? new Date(to) : undefined;
-  let toNextDate= new Date()
+  let toNextDate: Date | undefined
   if(toDate){
     toNextDate= new Date(toDate)
     toNextDate?.setDate(toNextDate.getDate()+1)
@@ -91,7 +89,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock/historique">) => {
         </h1>
         {
           variant && (
-            <p>[ {variant.product.name} {variant.color} - {variant.size} · ({variant.sku})  ]</p>
+            <p>[ {variant.product.name} [variant.color, variant.size].filter(Boolean).join(" / ")] · ({variant.sku})  ]</p>
           )
 
           
@@ -100,7 +98,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock/historique">) => {
       </div>
       <div className="flex justify-between mt-15 mb-12">
         <div className="flex gap-3">
-          <SearchBar />
+          <SearchBar subject="sku ou nom de produit" />
         </div>
         <div className="flex gap-4">
           <div className="flex items-center gap-2 text-neutral-700">

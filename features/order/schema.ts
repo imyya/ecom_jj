@@ -1,3 +1,4 @@
+import { OrderStatus } from "@/generated/prisma";
 import { z } from "zod";
 
 export const CreateOrderSchema = z.object({
@@ -25,4 +26,6 @@ export const CreateOrderSchema = z.object({
   couponCode: z.string().optional(),
 });
 
+export const isOrderStatus = (v: unknown): v is OrderStatus =>
+  typeof v === "string" && (Object.values(OrderStatus) as string[]).includes(v);
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;

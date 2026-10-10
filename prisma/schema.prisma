@@ -205,7 +205,7 @@ model Order {
   deliveryAddress  String?
   deliveryQuartier String?
   deliveryNotes    String?
-  status           OrderStatus          @default(NOUVELLE_COMMANDE)
+  status           OrderStatus          @default(PAIEMENT_EN_ATTENTE)
   statusHistory    OrderStatusHistory[]
   items            OrderItem[]
   payment          Payment?

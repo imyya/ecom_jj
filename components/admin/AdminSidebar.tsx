@@ -51,9 +51,9 @@ export function AdminSidebar({name}:{name?:string}) {
         <div className="flex items-center justify-between rounded-md px-2 py-2">
           <div className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
-              MA
+              {name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}
             </div>
-            <span className="text-sm font-medium text-slate-900">{name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}</span>
+            {/* <span className="text-sm font-medium text-slate-900">{name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}</span> */}
           </div>
           <button
           onClick={()=>{

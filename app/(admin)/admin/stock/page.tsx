@@ -110,7 +110,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock">) => {
       </div>
       <div className="flex justify-between mt-10">
         <div className="">
-          <SearchBar />
+          <SearchBar subject="sku ou nom de produit" />
         </div>
         <div className="mb-6 flex justify-end flex-wrap gap-2">
           <StockFilter />

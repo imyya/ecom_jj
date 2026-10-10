@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-export function SearchBar() {
+export function SearchBar({subject}:{subject:string}) {
   const searchParams = useSearchParams();
   const defaultValue = searchParams.get("search");
   const pathName = usePathname();
@@ -40,7 +40,7 @@ export function SearchBar() {
           setInput(e.target.value);
           handleChange(e.target.value);
         }}
-        placeholder="Rechercher ..."
+        placeholder={`Rechercher par ${subject} .. `}
         className="bg-white h-10 w-75"
         // defaultValue={searchParams.get('search')?.toString()}
       />

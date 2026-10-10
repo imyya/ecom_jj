@@ -68,23 +68,6 @@ export const ListVariants = async (params // status,
   return await prisma.productVariant.findMany({
     where: await buildWhere(params),
 
-    // status === "low"
-    //   ? {
-    //     isActive:true,
-    //       stock: {
-    //         lte: 10,
-    //       },
-    //     }
-    //   : status === "out"
-    //     ? {
-    //         isActive:true,
-    //         stock: {
-    //           equals: 0,
-    //         },
-    //       }
-    //     : {
-    //       isActive:true
-    //     },
 
     include: {
       product: {
