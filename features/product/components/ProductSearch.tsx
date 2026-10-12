@@ -1,37 +1,42 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { searchProductSuggestions, Suggestion } from "../actions";
-import { ImageOff, Search } from "lucide-react";
+import { ImageOff, Search, SearchAlertIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
 
 const ProductSearch = ({
   initialValue,
-  category,
+
 }: {
   initialValue?: string;
-  category?: string;
 }) => {
   const router = useRouter();
   const [query, setQuery] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const pathName = usePathname();
+  
 
-  useEffect(()=> {
-      const timeout = setTimeout(async () => {
-          const results = await searchProductSuggestions(query);
-      setSuggestions(results);
-      setIsOpen(results.length > 0);
-      const params = new URLSearchParams();
-      if (query) params.set("search", query);
-      if (category) params.set("category", category);
-      router.replace(`/boutique?${params.toString()}`);
+    const handleChange = useDebouncedCallback(async(search: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        const results = await searchProductSuggestions(search);
+        setSuggestions(results);
+        setIsOpen(results.length > 0);
+        if (search){
+        params.set("search", search);
+        } 
+        else{
+          params.delete("search")
+        } 
+        params.delete("page")
+      router.replace(`${pathName}?${params.toString()}`);
     }, 300);
-    return () => clearTimeout(timeout);
-  }, [query]);
 
       useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
@@ -44,7 +49,7 @@ const ProductSearch = ({
     }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-sm mb-10">
+    <div ref={containerRef} className="relative w-full max-w-sm">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -55,7 +60,9 @@ const ProductSearch = ({
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            handleChange(e.target.value)}}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder="Rechercher un produit..."
           className="w-full rounded-sm border border-neutral-300 px-3 py-2 text-sm"

@@ -8,10 +8,12 @@ import { ImageOff } from "lucide-react";
 import ProductActions from "@/features/product/components/ProductActions";
 import ProductGallery from "@/features/product/components/ProductGallery";
 
-export async function generateMetadata({ params }: PageProps<"/boutique/[slug]">) {
+export async function generateMetadata({
+  params,
+}: PageProps<"/boutique/[slug]">) {
   const { slug } = await params;
-  const product = await getProductBySlug({ slug });
-  if (!product) return {};
+  const product = await getProductBySlug({ slug, isActive: true });
+  if (!product) notFound();
 
   return {
     title: product.name,
@@ -26,11 +28,14 @@ export async function generateMetadata({ params }: PageProps<"/boutique/[slug]">
 
 const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
   const { slug } = await params;
-  const product = await getProductBySlug({ slug });
+  const product = await getProductBySlug({ slug, isActive: true });
 
   if (!product) {
     notFound();
   }
+  const isOutOfStock = product?.variants.every(
+    (v) => v.stock - v.reservedStock <= 0,
+  );
 
   const cover = product.images[0];
 
@@ -38,9 +43,14 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
     <Container className="py-12 lg:py-16">
       {/* fil d'ariane */}
       <nav className="mb-6 text-sm text-neutral-500">
-        <Link href="/boutique" className="hover:text-neutral-900 transition">Boutique</Link>
+        <Link href="/boutique" className="hover:text-neutral-900 transition">
+          Boutique
+        </Link>
         <span className="mx-2">/</span>
-        <Link href={`/boutique?category=${product.category.slug}`} className="hover:text-neutral-900 transition">
+        <Link
+          href={`/boutique?category=${product.category.slug}`}
+          className="hover:text-neutral-900 transition"
+        >
           {product.category.name}
         </Link>
       </nav>
@@ -48,7 +58,7 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-16">
         {/* galerie */}
 
-        <ProductGallery product={product}/>
+        <ProductGallery product={product} />
         {/* <div className="flex flex-col gap-3">
           <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
             {cover ? (
@@ -88,23 +98,35 @@ const Page = async ({ params }: PageProps<"/boutique/[slug]">) => {
                 Nouveau
               </span>
             )}
+            {isOutOfStock && (
+              <span className="inline-block rounded-sm bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
+                Rupture de stock
+              </span>
+            )}
           </div>
 
           {product.promoPrice ? (
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-primary">{formatPrice(product.promoPrice)}</span>
-              <span className="text-lg text-neutral-400 line-through">{formatPrice(product.basePrice)}</span>
+              <span className="text-2xl font-bold text-primary">
+                {formatPrice(product.promoPrice)}
+              </span>
+              <span className="text-lg text-neutral-400 line-through">
+                {formatPrice(product.basePrice)}
+              </span>
             </div>
           ) : (
-            <span className="text-2xl font-bold text-primary">{formatPrice(product.basePrice)}</span>
+            <span className="text-2xl font-bold text-primary">
+              {formatPrice(product.basePrice)}
+            </span>
           )}
 
           {product.description && (
-            <p className="leading-relaxed text-neutral-600">{product.description}</p>
+            <p className="leading-relaxed text-neutral-600">
+              {product.description}
+            </p>
           )}
 
-          <ProductActions product={product}/>
-         
+          <ProductActions product={product} />
         </div>
       </div>
     </Container>

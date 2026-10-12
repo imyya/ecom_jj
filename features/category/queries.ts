@@ -1,4 +1,4 @@
-"server only"
+import "server-only"
 import prisma from "@/lib/prisma"
 
 export const listCategories = async(name?:string)=>{

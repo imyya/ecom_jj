@@ -4,10 +4,12 @@ import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import React from "react";
 import { ProductListItem } from "../queries";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { ImageOff, Plus } from "lucide-react";
 
 const ProductCard = ({ product }: { product: ProductListItem }) => {
+  const isOutOfStock = product.variants.every((v) => v.stock - v.reservedStock <= 0);
+
   const handleAddToCart = () => {
     // TODO: logique panier
   };
@@ -16,20 +18,28 @@ const ProductCard = ({ product }: { product: ProductListItem }) => {
       {/* image */}
       {/* <div className="relative overflow-hidden rounded-lg"> */}
       <div className="relative group aspect-square overflow-hidden rounded-lg bg-neutral-100">
+        {isOutOfStock && (
+  <span className="absolute top-3 left-2 z-10 rounded-sm bg-neutral-900 px-2 py-1 text-xs font-medium text-white">
+    Rupture de stock
+  </span>
+)}
+
         {product.images[0]?.url ? (
           <Image
             src={product.images[0].url}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, 25vw"
-            className="w-full h- object-cover transition duration-300 group-hover:scale-105"
+            className= {cn("w-full h- object-cover transition duration-300 group-hover:scale-105",
+              isOutOfStock ? "opacity-50":""
+            )} 
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <ImageOff className="size-8 text-neutral-300" />
           </div>
         )}
-        <button
+        {/* <button
           type="button"
           onClick={handleAddToCart}
           aria-label={`Ajouter ${product.name} au panier`}
@@ -37,7 +47,7 @@ const ProductCard = ({ product }: { product: ProductListItem }) => {
         >
           <Plus className="size-4" />
           Ajouter
-        </button>
+        </button> */}
       </div>
 
       {/*         

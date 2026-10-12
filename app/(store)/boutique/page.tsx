@@ -5,12 +5,11 @@ import Container from "@/components/ui/Container";
     PaginationContent,
     PaginationEllipsis,
     PaginationItem,
-    PaginationLink,
-    PaginationPrevious,
   } from "@/components/ui/pagination";
+import { BoutiqueFilters } from "@/features/product/components/BoutiqueFilters";
 import ProductCard from "@/features/product/components/ProductCard";
 import ProductSearch from "@/features/product/components/ProductSearch";
-import { countTotalProducts, listProducts } from "@/features/product/queries";
+import { countTotalProducts, listAvailableColors, listCategoryOptions, listProducts } from "@/features/product/queries";
 import { getPageNumbers } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
@@ -25,10 +24,10 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
   const currentPage = Number(page) || 1;
   const searchQuery = typeof search === "string" ? search : undefined;
 
-  const [products, totalCount] = await Promise.all([
+  const [products, categories, colors, totalCount] = await Promise.all([
   listProducts({
       categorySlug: typeof category === "string" ? category : undefined,
-      pageNumber: Number(page || 1),
+      pageNumber: currentPage,
       search: searchQuery,
       isActive: true,
       priceMin:
@@ -38,6 +37,8 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
       size: typeof size === "string" ? size : undefined,
       color: typeof color === "string" ? color : undefined,
     }),
+    listCategoryOptions(),
+    listAvailableColors(),
     countTotalProducts({
       categorySlug: typeof category === "string" ? category : undefined,
       search: searchQuery,
@@ -48,40 +49,27 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
         typeof priceMax === "string" && priceMax ? Number(priceMax) : undefined,
       size: typeof size === "string" ? size : undefined,
       color: typeof color === "string" ? color : undefined,
-    }),
+    })
   ]);
   const totalPages = Math.ceil(totalCount / pageSize);
   const pages = getPageNumbers(Number(currentPage), totalPages);
-    // const pages = getPageNumbers(Number(currentPage ), totalPages);
-
-   console.log("the page", page);
-  console.log("the total count", totalCount);
-  console.log("the products", products);
-  //   const totalNumber = await countTotalProducts({
-  //     categorySlug: typeof category === "string" ? category : undefined,
-  //   });
-
+  
     const buildPageHref = (targetPage: number) => {
-    console.log("target page", targetPage);
     const params = new URLSearchParams();
     if (typeof search === "string" && search) params.set("search", search);
-    if (typeof category === "string" && category)
-      params.set("category", category);
-    if (typeof status === "string" && status) params.set("status", status);
-    if (typeof priceMin === "string" && priceMin)
-      params.set("priceMin", priceMin);
-    if (typeof priceMax === "string" && priceMax)
-      params.set("priceMax", priceMax);
+    if (typeof category === "string" && category)params.set("category", category);
+    if(typeof color === "string" && color) params.set("color",color)
     params.set("page", String(targetPage));
     return `/boutique?${params.toString()}`;
   };
 
   return (
     <Container className="py-12 lg:py-16">
-      <ProductSearch
-        initialValue={searchQuery}
-        category={typeof category === "string" ? category : undefined}
-      ></ProductSearch>
+      <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+  <ProductSearch initialValue={searchQuery} />
+  <BoutiqueFilters categories={categories} colors={colors} />
+</div>
+
       {/* <form method="GET" className="mb-8 flex gap-2 items-center">
         {category && <input type="hidden" name="category" value={category} />}
 
@@ -116,7 +104,7 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
               className={cn(
                 "flex items-center mr-3",
                 "hover:bg-neutral-100",
-                currentPage == 1 ? "pointer-cursor opacity-5" : "",
+                currentPage == 1 ? "pointer-events-none opacity-50" : "",
               )}
               // aria-disabled={Number(page) === totalPages}
               // tabIndex={Number(page) === totalPages ? -1 : undefined}
@@ -151,17 +139,16 @@ export default async function Page({ searchParams }: PageProps<"/boutique">) {
               );
             }
           })}
-          <PaginationItem>
+           <PaginationItem>
             <Link
               href={buildPageHref(currentPage + 1)}
-              // aria-disabled={Number(page) === totalPages}
-              // tabIndex={Number(page) === totalPages ? -1 : undefined}
               className={cn(
-                "flex items-center mr-3",
-                "hover:bg-neutral-100", 
-                currentPage === totalPages ? "pointer-cursor opacity-5" : "",
+                "flex items-center ml-3",
+                "hover:bg-neutral-100",
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : "",
               )}
-              //  className=`{currentPage === totalPages? "pointer-none opacity-5" : undefined}`
             >
               <p className="text-sm font-semibold">Next</p>
               <ChevronRight className="size-4" />

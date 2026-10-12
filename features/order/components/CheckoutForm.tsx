@@ -46,15 +46,15 @@ const CheckoutForm = ({deliveryZones}: { deliveryZones: DeliveryZone[] }) => {
         return
     }
 
-    let message = "Bonjour, je confirme ma commande :\n"
+    // let message = "Bonjour, je confirme ma commande :\n"
 
-     for (const i of items) {
-      message += `\n${i.productName} (${i.variantLabel}) x${i.quantity}`;
-    }
-    message += `\n\n*Total : ${formatPrice(subtotal)}*\nCommande n°${result.data!.orderNumber}`;
+    //  for (const i of items) {
+    //   message += `\n${i.productName} (${i.variantLabel}) x${i.quantity}`;
+    // }
+    // message += `\n\n*Total : ${formatPrice(subtotal)}*\nCommande n°${result.data!.orderNumber}`;
 
-    clearCart();
-    window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    // clearCart();
+    // window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   };
 
   if (items.length === 0) {

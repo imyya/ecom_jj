@@ -26,6 +26,7 @@ import { getPageNumbers } from "@/lib/pagination";
 import { RotateCcw } from "lucide-react";
 import ProductDetailsDialog from "@/features/product/components/ProductDetailsDialog";
 import ToggleProductStatus from "@/features/product/components/ToggleProductStatus";
+import { SearchBar } from "@/features/stock/components/SearchBar";
 
 const pageSize = Number(process.env.ELEMENTS_BY_PAGE) || 5;
 
@@ -104,17 +105,18 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
       </div>
 
       <form method="GET" className="mb-6 flex flex-wrap gap-2">
-        <input
+      <SearchBar subject="par nom"/>
+        {/* <input
           type="text"
           name="search"
           defaultValue={typeof search === "string" ? search : ""}
           placeholder="Rechercher..."
           className="rounded-sm border border-neutral-300 px-3 py-2 text-sm"
-        />
+        /> */}
         <select
           name="category"
           defaultValue={typeof category === "string" ? category : ""}
-          className="rounded-sm border border-neutral-300 px-3 py-2 text-sm cursor-pointer"
+          className="rounded-sm border border-neutral-300 px-2 py-2 text-sm cursor-pointer"
         >
           <option className="cursor-pointer" value="">
             Toutes les catégories
@@ -128,7 +130,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
         <select
           name="status"
           defaultValue={typeof status === "string" ? status : ""}
-          className="rounded-sm border border-neutral-300 px-3 py-2 text-sm cursor-pointer"
+          className="rounded-sm border border-neutral-300 px-2 py-2 text-sm cursor-pointer"
         >
           <option value="">Tous les statuts</option>
           <option value="active">Actifs</option>
@@ -139,14 +141,14 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
           name="priceMin"
           defaultValue={typeof priceMin === "string" ? priceMin : ""}
           placeholder="Prix min"
-          className="w-28 rounded-sm border border-neutral-300 px-3 py-2 text-sm"
+          className="w-26 rounded-sm border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
           type="number"
           name="priceMax"
           defaultValue={typeof priceMax === "string" ? priceMax : ""}
           placeholder="Prix max"
-          className="w-28 rounded-sm border border-neutral-300 px-3 py-2 text-sm"
+          className="w-26 rounded-sm border border-neutral-300 px-3 py-2 text-sm"
         />
 
         <button
@@ -258,7 +260,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
               className={cn(
                 "flex items-center mr-3",
                 "hover:bg-neutral-100",
-                currentPage == 1 ? "pointer-cursor opacity-5" : "",
+                currentPage == 1 ? "cursor-none opacity-5" : "",
               )}
               // aria-disabled={Number(page) === totalPages}
               // tabIndex={Number(page) === totalPages ? -1 : undefined}
@@ -301,7 +303,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
               className={cn(
                 "flex items-center mr-3",
                 "hover:bg-neutral-100", 
-                currentPage === totalPages ? "pointer-cursor opacity-5" : "",
+                currentPage === totalPages ? "cursor-none opacity-5" : "",
               )}
               //  className=`{currentPage === totalPages? "pointer-none opacity-5" : undefined}`
             >

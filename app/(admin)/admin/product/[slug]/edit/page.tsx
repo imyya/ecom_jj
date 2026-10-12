@@ -7,7 +7,7 @@ import React from "react";
 const Page = async ({ params }: PageProps<"/admin/product/[slug]/edit">) => {
   const { slug } = await params;
  const [product, categories] = await Promise.all([
-    getProductBySlug({ slug }),
+    getProductBySlug({ slug, }),
     listCategories(),
   ]);
     if (!product) { 

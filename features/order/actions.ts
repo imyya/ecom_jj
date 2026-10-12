@@ -8,6 +8,11 @@ import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
+
+type CreateOrderResult =
+  | { ok: true; message: string; data: { orderNumber: string; total: number } }
+  | { ok: false; message: string };
+
 class OrderError extends Error {}
 
 async function generateOrderNumber(
@@ -25,10 +30,13 @@ async function generateOrderNumber(
   return `JIIRO-${year}-${sequence}`;
 }
 
-const createOrder = async (order: CreateOrderInput) => {
+const createOrder = async (order: CreateOrderInput):Promise<CreateOrderResult> => {
   const parsed = CreateOrderSchema.safeParse(order);
   if (!parsed.success) {
-    return { ok: false, errors: z.flattenError(parsed.error) };
+    // return { ok: false, errors: z.flattenError(parsed.error) };
+    console.error("[CreateOrder]",parsed.error)
+    return { ok: false, message: "Certains champs sont invalides" };
+
   }
 
   try {
@@ -53,7 +61,7 @@ const createOrder = async (order: CreateOrderInput) => {
             product: true,
           },
         });
-        if (!item || !item.isActive) {
+        if (!item || !item.isActive || !item.product.isActive) {
           throw new OrderError(
             `Un article de votre panier n'est plus disponible`,
           );
@@ -116,7 +124,8 @@ const createOrder = async (order: CreateOrderInput) => {
     });
     return {
       ok: true,
-      data: result,
+      data: {"orderNumber":result.orderNumber,
+        "total":result.total},
       message: "Order added successfully",
     };
   } catch (err) {
@@ -156,7 +165,7 @@ export const confirmWaitingOrder = async (orderId: string) => {
           },
         },
       });
-      if (!order) throw new OrderError("Order introuvable");
+      if (!order) throw new OrderError("Commande introuvable");
 
       const { count } = await tx.order.updateMany({
         where: { id: orderId, status: OrderStatus.PAIEMENT_EN_ATTENTE },

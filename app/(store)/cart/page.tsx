@@ -39,7 +39,6 @@ export default function PanierPage() {
       setError(result.message ?? "Une erreur est survenue");
       return;
     }
-
     let message = "Bonjour, je souhaite commander :\n";
     for (const i of items) {
       //const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/boutique/${i.slug}`
@@ -50,7 +49,8 @@ export default function PanierPage() {
     }
     message =
       message +
-      `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
+      `\nCommande n°${result.data.orderNumber} \n\n *Total* ${formatPrice(result.data.total)}`;
+    // `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
     console.log(message);
     clearCart();
 
@@ -127,10 +127,11 @@ export default function PanierPage() {
                     </span>
                     <button
                       type="button"
+                      disabled = {item.quantity >= item.stock - item.reservedStock}
                       onClick={() =>
                         updateQuantity(item.variantId, item.quantity + 1)
                       }
-                      className="flex size-7 items-center justify-center rounded-sm border border-neutral-300"
+                      className="flex size-7 items-center justify-center rounded-sm border border-neutral-300 disabled:opacity-40"
                     >
                       <Plus className="size-3" />
                     </button>
@@ -182,6 +183,7 @@ export default function PanierPage() {
           <button
             onClick={placeOrderViaWhatsapp}
             type="button"
+            disabled={isSubmitting}
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-green-700 px-6 font-bold text-slate-50 transition hover:bg-green-900 cursor-pointer sm:w-fit disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting

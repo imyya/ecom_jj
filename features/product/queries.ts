@@ -32,9 +32,9 @@ function buildWhere(params?: {
         }
       : {}),
     // ...(params?.size ? { variants: { some: { size: params.size } } } : {}),
-    // ...(params?.color ? { variants: { some: { color: params.color } } } : {}),
+    ...(params?.color ? { variants: { some: { color: params.color } } } : {}),
     ...(params?.size && params.color ? {variants:{some:{size:params.size, color:params.color, isActive:true}}} //si le filtre est fait simultanement sur les size et couleur sinon si cest separement.  
-    : params?.size ? {variants:{some:{size:params?.size,isActive:true}}}
+    :params?.size ? {variants:{some:{size:params?.size,isActive:true}}}
     :params?.color ? {variants:{some:{color:params?.color, isActive:true}}}
      :{}
 )
@@ -65,6 +65,10 @@ export const listProducts = async (params?: {
         take: 1,
       },
       category: true,
+      variants:{
+        select:{stock:true, reservedStock:true}
+      }
+      
     },
     skip: params?.pageNumber ? (params?.pageNumber - 1) * pageSize : 0,
     take: pageSize,
@@ -114,10 +118,11 @@ export const countTotalProducts = async (params?: {
   });
 };
 
-export const getProductBySlug = async (params: { slug: string }) => {
+export const getProductBySlug = async (params: { slug: string, isActive?:boolean }) => {
   return await prisma.product.findUnique({
     where: {
       slug: params.slug,
+      ...(params.isActive ? {isActive:params.isActive}: {}  )
     },
     include: {
       images: {
@@ -146,6 +151,24 @@ export const listBestSellers = async () => {
     },
     orderBy: { name: "asc" },
   });
+};
+
+
+export const listCategoryOptions = async () => {
+  return prisma.category.findMany({
+    select: { slug: true, name: true },
+    orderBy: { name: "asc" },
+  });
+};
+
+export const listAvailableColors = async () => {
+  const rows = await prisma.productVariant.findMany({
+    where: { isActive: true, color: { not: null }, product: { isActive: true } },
+    select: { color: true },
+    distinct: ["color"],
+    orderBy: { color: "asc" },
+  });
+  return rows.flatMap((r) => (r.color ? [r.color] : []));
 };
 
 export type ProductListItem = Awaited<ReturnType<typeof listProducts>>[number];

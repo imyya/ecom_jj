@@ -89,9 +89,8 @@ const Page = async ({ searchParams }: PageProps<"/admin/stock/historique">) => {
         </h1>
         {
           variant && (
-            <p>[ {variant.product.name} [variant.color, variant.size].filter(Boolean).join(" / ")] · ({variant.sku})  ]</p>
+            <p>[ {variant.product.name} {[variant.color, variant.size].filter(Boolean).join(" / ")}] · [({variant.sku})  ]</p>
           )
-
           
         }
         

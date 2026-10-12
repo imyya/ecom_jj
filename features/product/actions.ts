@@ -394,7 +394,7 @@ export async function removeProductImage(data: RemoveProductImageInput) {
         id: parsed.data.id,
       },
     });
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/product");
     return { ok: true, message: "image deleted successfully" };
   } catch (err) {
     return {
