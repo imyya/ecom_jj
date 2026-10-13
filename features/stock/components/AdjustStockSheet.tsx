@@ -17,8 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { StockAdjustmentReason } from "../schema";
-import { Value } from "@/generated/prisma/runtime/client";
-import { adjustStock } from "../actions";
+import { adjustStock } from "../actions"; 
 
 const REASONS = [
   { value: "RECEPTION", label: "Réception fournisseur" },

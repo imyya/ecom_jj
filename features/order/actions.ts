@@ -8,7 +8,6 @@ import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
-
 type CreateOrderResult =
   | { ok: true; message: string; data: { orderNumber: string; total: number } }
   | { ok: false; message: string };
@@ -30,13 +29,14 @@ async function generateOrderNumber(
   return `JIIRO-${year}-${sequence}`;
 }
 
-const createOrder = async (order: CreateOrderInput):Promise<CreateOrderResult> => {
+const createOrder = async (
+  order: CreateOrderInput,
+): Promise<CreateOrderResult> => {
   const parsed = CreateOrderSchema.safeParse(order);
   if (!parsed.success) {
     // return { ok: false, errors: z.flattenError(parsed.error) };
-    console.error("[CreateOrder]",parsed.error)
+    console.error("[CreateOrder]", parsed.error);
     return { ok: false, message: "Certains champs sont invalides" };
-
   }
 
   try {
@@ -98,6 +98,14 @@ const createOrder = async (order: CreateOrderInput):Promise<CreateOrderResult> =
         if (reserved === 0)
           throw new OrderError(`Stock insuffisant pour ${item.product.name}`);
       }
+      const deliveryZone = await prisma.deliveryZone.findUnique({
+        where:{
+            id:parsed.data.deliveryZoneId,
+            isActive:true
+        }
+      })
+      if(!deliveryZone)throw new OrderError('Zone de livraison introuvable');
+
       const orderNumber = await generateOrderNumber(tx);
       return await tx.order.create({
         data: {
@@ -110,7 +118,8 @@ const createOrder = async (order: CreateOrderInput):Promise<CreateOrderResult> =
           deliveryQuartier: parsed.data.deliveryQuartier,
           customerId: customer?.id ?? null,
           subtotal: subTotal,
-          total: subTotal,
+          total: subTotal + deliveryZone.fee,
+          deliveryFee: deliveryZone.fee,
           statusHistory: {
             create: {
               status: OrderStatus.PAIEMENT_EN_ATTENTE,
@@ -124,8 +133,7 @@ const createOrder = async (order: CreateOrderInput):Promise<CreateOrderResult> =
     });
     return {
       ok: true,
-      data: {"orderNumber":result.orderNumber,
-        "total":result.total},
+      data: { orderNumber: result.orderNumber, total: result.total },
       message: "Order added successfully",
     };
   } catch (err) {
@@ -203,6 +211,7 @@ export const confirmWaitingOrder = async (orderId: string) => {
       });
     });
 
+    revalidatePath("/admin/layout");
     revalidatePath(`/admin/orders`);
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath(`/admin/stock`);
@@ -224,12 +233,11 @@ export const confirmWaitingOrder = async (orderId: string) => {
   }
 };
 
-
-export const cancelWaitingOrder=async(orderId:string, note?:string)=>{
-    await requireAdmin(["SUPER_ADMIN","GESTIONNAIRE"])
-try{
-    const result = await prisma.$transaction(async(tx)=>{
-        const order = await tx.order.findUnique({
+export const cancelWaitingOrder = async (orderId: string, note?: string) => {
+  await requireAdmin(["SUPER_ADMIN", "GESTIONNAIRE"]);
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
         where: {
           id: orderId,
         },
@@ -242,9 +250,9 @@ try{
           },
         },
       });
-      if (!order) throw new OrderError("Order introuvable");
+      if (!order) throw new OrderError("Commande introuvable");
 
-            const { count } = await tx.order.updateMany({
+      const { count } = await tx.order.updateMany({
         where: { id: orderId, status: OrderStatus.PAIEMENT_EN_ATTENTE },
         data: {
           status: OrderStatus.ANNULEE,
@@ -255,7 +263,7 @@ try{
           "Cette commande n'est plus en attente de paiement",
         );
 
-              const data = order.items.map((i) => ({
+      const data = order.items.map((i) => ({
         variantId: i.variantId,
         quantity: i.quantity,
       }));
@@ -274,11 +282,12 @@ try{
         data: {
           orderId: order.id,
           status: OrderStatus.ANNULEE,
-          note:note
+          note: note,
         },
-      })
-    })
+      });
+    });
 
+    revalidatePath("/admin/layout");
     revalidatePath(`/admin/orders`);
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath(`/admin/stock`);
@@ -288,10 +297,8 @@ try{
       data: [],
       message: "Commande annulée",
     };
-
-
-}catch(err){
-     if (err instanceof OrderError)
+  } catch (err) {
+    if (err instanceof OrderError)
       return {
         ok: false,
         message: err.message,
@@ -299,6 +306,6 @@ try{
 
     console.error("[cancelWaitingOrder]", err);
     return { ok: false, message: "Une erreur est survenue" };
-}
-}
+  }
+};
 export default createOrder;

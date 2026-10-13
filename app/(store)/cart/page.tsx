@@ -22,7 +22,6 @@ export default function PanierPage() {
     if (items.length === 0) return;
     setError(null);
     setIsSubmitting(true);
-    console.log("les itmes", items);
 
     const orderItems = items.map((i) => {
       return {
@@ -31,7 +30,6 @@ export default function PanierPage() {
         quantity: i.quantity,
       };
     });
-    console.log("order items", orderItems);
 
     const result = await createOrder({ items: orderItems });
     if (!result.ok) {
@@ -51,7 +49,6 @@ export default function PanierPage() {
       message +
       `\nCommande n°${result.data.orderNumber} \n\n *Total* ${formatPrice(result.data.total)}`;
     // `\nCommande n°${result.data!.orderNumber} \n\n *Total* ${formatPrice(subtotal)} FCFA`;
-    console.log(message);
     clearCart();
 
     window.location.href = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -164,7 +161,7 @@ export default function PanierPage() {
             </span>
           </div>
           <p className="text-xs text-neutral-400">
-            Frais de livraison calculés à l'étape suivante.
+            Frais de livraison calculés à l’étape suivante.
           </p>
           <Link
             href="/order"

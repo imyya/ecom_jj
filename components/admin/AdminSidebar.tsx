@@ -1,7 +1,15 @@
-"use client"
+"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, LogOut, Warehouse } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  FolderTree,
+  ShoppingBag,
+  LogOut,
+  Warehouse,
+  Truck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/actions";
 
@@ -11,9 +19,16 @@ const ADMIN_NAV = [
   { href: "/admin/stock", label: "Stock", icon: Warehouse },
   { href: "/admin/category", label: "Catégories", icon: FolderTree },
   { href: "/admin/orders", label: "Commandes", icon: ShoppingBag },
+  { href: "/admin/delivery-zones", label: "Livraison", icon: Truck },
 ];
 
-export function AdminSidebar({name}:{name?:string}) {
+export function AdminSidebar({
+  name,
+  pendingOrders,
+}: {
+  name?: string;
+  pendingOrders: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -28,37 +43,49 @@ export function AdminSidebar({name}:{name?:string}) {
       <nav className="flex flex-1 flex-col gap-0.5 p-3">
         {ADMIN_NAV.map((link) => {
           const isActive =
-            link.href === "/admin" ? pathname === "/admin" : pathname.startsWith(link.href);
+            link.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(link.href);
           const Icon = link.icon;
           return (
-            <Link   
+            <Link
               key={link.href}
               href={link.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-neutral-600 hover:bg-neutral-100 hover:text-slate-900"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-slate-900",
               )}
             >
               <Icon className="size-4" />
               {link.label}
+              {link.href === "/admin/orders" && pendingOrders > 0 && (
+                <span className="ml-auto rounded-full bg-red-500 w-3 h-3 py-2 px-2 flex items-center justify-center text-[11px]  text-white">
+                  {pendingOrders}
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
-            <div className="border-t border-neutral-200 p-3 mb-2">
+      <div className="border-t border-neutral-200 p-3 mb-2">
         <div className="flex items-center justify-between rounded-md px-2 py-2">
           <div className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
-              {name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}
+              {name
+                ?.split(" ")
+                .map((mot) => mot[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase() ?? ""}
             </div>
             {/* <span className="text-sm font-medium text-slate-900">{name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}</span> */}
           </div>
           <button
-          onClick={()=>{
-            logout()
-          }}
+            onClick={() => {
+              logout();
+            }}
             type="button"
             aria-label="Déconnexion"
             className="text-neutral-400 transition hover:text-destructive cursor-pointer"
@@ -66,7 +93,7 @@ export function AdminSidebar({name}:{name?:string}) {
             <LogOut className="size-4" />
           </button>
         </div>
-        </div>
+      </div>
     </aside>
   );
 }

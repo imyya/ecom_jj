@@ -64,12 +64,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
     listCategories(),
   ]);
 
-  // useEffect(()=>{
 
-  // },[products])
-  console.log("the page", page);
-  console.log("the total count", totalCount);
-  console.log("the products", products);
 
   const hasActiveFilters = Boolean(
     search || category || status || priceMin || priceMax || size || color,
@@ -78,7 +73,6 @@ const Page = async ({ searchParams }: PageProps<"/admin/product">) => {
   const totalPages = Math.ceil(totalCount / pageSize);
   const pages = getPageNumbers(Number(currentPage), totalPages);
   const buildPageHref = (targetPage: number) => {
-    console.log("target page", targetPage);
     const params = new URLSearchParams();
     if (typeof search === "string" && search) params.set("search", search);
     if (typeof category === "string" && category)

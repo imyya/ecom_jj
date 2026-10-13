@@ -59,7 +59,7 @@ const Page = async ({ searchParams }: PageProps<"/admin/orders">) => {
       </div>
       <div className="flex justify-between mt-15 mb-12">
         <div className="flex gap-3">
-          <SearchBar subject="n° de commande" />
+          <SearchBar subject="n° commande, Tel client " />
         </div>
         <OrderStatusFilter/>
         {/* <div className="flex gap-4">
@@ -85,6 +85,8 @@ const Page = async ({ searchParams }: PageProps<"/admin/orders">) => {
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Client</th>
               <th className="px-4 py-3">Articles</th>
+              <th className="px-4 py-3">Sous-total</th>
+              <th className="px-4 py-3">Frais Livraison</th>
               <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Actions</th>
@@ -124,6 +126,8 @@ const Page = async ({ searchParams }: PageProps<"/admin/orders">) => {
                 <td className="p-4">
                   {v.items.reduce((a, i) => i.quantity + a, 0)}
                 </td>
+                <td className="px-4 text-slate-700 ">{formatPrice(v.subtotal)}</td>
+                <td className="px-4 text-slate-700 ">{formatPrice(v.deliveryZone?.fee ?? 0)}</td>
                 <td className="px-4 text-slate-700 font-bold">{formatPrice(v.total)}</td>
                 <td className="px-4 py-3 text-slate-700 font-medium">
                   <span

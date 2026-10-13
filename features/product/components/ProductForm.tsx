@@ -184,7 +184,6 @@ export function ProductForm({
         },
       );
       const data = await res.json();
-      console.log(data.public_id, data.asset_folder);
 
       if (!res.ok) {
         // setErrors({ formErrors: [data.error.message], fieldErrors: {} });

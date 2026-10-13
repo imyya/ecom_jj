@@ -44,7 +44,12 @@ export const listOrders=async(params?: {
                 }
             },
             statusHistory:true,
-            items:true
+            items:true,
+            deliveryZone:{
+                select:{
+                    fee:true
+                }
+            }
         },
         skip: params?.pageNumber ? (params.pageNumber - 1) * pageSize : 0,
         take: pageSize,
@@ -100,4 +105,13 @@ export const getOrderById=async(id:string)=>{
     })
 
 }
+
+export const countPendingOrders=async()=>{
+   return await prisma.order.count({
+        where:{
+            status: OrderStatus.PAIEMENT_EN_ATTENTE
+        }
+    })
+}
 export type OrderDetail = NonNullable<Awaited<ReturnType<typeof getOrderById>>>;
+export type OrderItem = Awaited<ReturnType<typeof listOrders>>[number];

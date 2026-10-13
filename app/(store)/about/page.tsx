@@ -23,7 +23,7 @@ export default function Page() {
           </h2>
           <p className="mt-2 text-neutral-600">
             Des matières confortables, des finitions soignées, et un style
-            qui s'adapte à votre quotidien — du marché au bureau, de la rue
+            qui s’adapte à votre quotidien — du marché au bureau, de la rue
             à la plage.
           </p>
         </div>

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ImageOff } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, hoursSince } from "@/lib/utils";
 import { getOrderById } from "@/features/order/queries";
 import { ORDER_STATUS_STYLES } from "@/features/order/utils";
 import { WaitingOrderActions } from "@/features/order/components/WaitingOrderActions";
@@ -23,10 +23,8 @@ const Page = async ({ params }: PageProps<"/admin/orders/[id]">) => {
   const clientPhone = order.customer?.phone || order.guestPhone || "—";
   const clientEmail = order.customer?.email || order.guestEmail;
 
-  const hoursPending =
-    order.status === "PAIEMENT_EN_ATTENTE"
-      ? Math.floor((Date.now() - order.createdAt.getTime()) / 3_600_000)
-      : null;
+  const hoursPending = hoursSince(order)
+   
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">

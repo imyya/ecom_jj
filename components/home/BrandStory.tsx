@@ -45,7 +45,7 @@ export default function BrandStory() {
           </h2>
           <p className="mt-4 text-neutral-600">
             Chaque pièce Jiiro est pensée pour durer : des matières
-            confortables, des finitions soignées, et un style qui s'adapte à
+            confortables, des finitions soignées, et un style qui s’adapte à
             votre quotidien — du marché au bureau, de la rue à la plage.
           </p>
           <Link
