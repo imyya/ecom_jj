@@ -80,17 +80,18 @@ export function AdminSidebar({
                 .slice(0, 2)
                 .toUpperCase() ?? ""}
             </div>
-            {/* <span className="text-sm font-medium text-slate-900">{name?.split(" ").map((mot) => mot[0]).join("").slice(0, 2).toUpperCase() ?? ""}</span> */}
+            <span className="text-sm font-medium text-slate-900">{name}</span>
           </div>
           <button
             onClick={() => {
               logout();
             }}
+            title="se donnecter"
             type="button"
             aria-label="Déconnexion"
             className="text-neutral-400 transition hover:text-destructive cursor-pointer"
           >
-            <LogOut className="size-4" />
+            <LogOut className="size-4"  />
           </button>
         </div>
       </div>

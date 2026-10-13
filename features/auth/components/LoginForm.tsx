@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { X } from "lucide-react";
 import { login } from "@/features/auth/actions";
+import { Eye, EyeOff, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ClearableInputProps = {
   id: string;
@@ -11,11 +12,13 @@ type ClearableInputProps = {
   label: string;
   autoComplete: string;
   value: string;
+  revealable?: boolean;
   onChange: (value: string) => void;
 };
 
-function ClearableInput({ id, name, type, label, autoComplete, value, onChange }: ClearableInputProps) {
+function ClearableInput({ id, name, type, label, autoComplete, value, onChange, revealable = false }: ClearableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [visible, setVisible] = useState(false);
 
   return (
     <div>
@@ -27,30 +30,48 @@ function ClearableInput({ id, name, type, label, autoComplete, value, onChange }
           ref={inputRef}
           id={id}
           name={name}
-          type={type}
-          autoComplete={autoComplete}   
+          type={revealable && visible ? "text" : type}
+          autoComplete={autoComplete}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-sm border border-neutral-300 py-2 pl-3 pr-9 text-sm"
+          className={cn(
+            "w-full rounded-sm border border-neutral-300 py-2 pl-3 text-sm",
+            revealable ? "pr-16" : "pr-9",
+          )}
         />
-        {value && (
-          <button
-            type="button"
-            onClick={() => {
-              onChange("");
-              inputRef.current?.focus();
-            }}
-            aria-label={`Effacer ${label.toLowerCase()}`}
-            title="Effacer"
-            className="absolute inset-y-0 right-0 flex w-9 cursor-pointer items-center justify-center text-neutral-400 hover:text-neutral-700"
-          >
-            <X className="size-4" />
-          </button>
-        )}
+        <div className="absolute inset-y-0 right-0 flex items-center">
+          {value && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                inputRef.current?.focus();
+              }}
+              aria-label={`Effacer ${label.toLowerCase()}`}
+              title="Effacer"
+              className="flex h-full w-8 cursor-pointer items-center justify-center text-neutral-400 hover:text-neutral-700"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+          {revealable && (
+            <button
+              type="button"
+              onClick={() => setVisible((v) => !v)}
+              aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              aria-pressed={visible}
+              title={visible ? "Masquer" : "Afficher"}
+              className="flex h-full w-8 cursor-pointer items-center justify-center text-neutral-400 hover:text-neutral-700"
+            >
+              {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(login, undefined);
@@ -83,6 +104,7 @@ export function LoginForm() {
         autoComplete="current-password"
         value={password}
         onChange={setPassword}
+        revealable
       />
 
       <button
