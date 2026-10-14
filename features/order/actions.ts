@@ -98,13 +98,19 @@ const createOrder = async (
         if (reserved === 0)
           throw new OrderError(`Stock insuffisant pour ${item.product.name}`);
       }
-      const deliveryZone = await prisma.deliveryZone.findUnique({
-        where:{
-            id:parsed.data.deliveryZoneId,
-            isActive:true
-        }
-      })
-      if(!deliveryZone)throw new OrderError('Zone de livraison introuvable');
+
+      const zoneId = parsed.data.deliveryZoneId;
+      let deliveryFee = 0;
+
+      if (zoneId) {
+        const deliveryZone = await tx.deliveryZone.findUnique({
+          where: { id: zoneId, isActive: true },
+          select: { fee: true },
+        });
+        if (!deliveryZone)
+          throw new OrderError("Zone de livraison introuvable");
+        deliveryFee = deliveryZone.fee;
+      }
 
       const orderNumber = await generateOrderNumber(tx);
       return await tx.order.create({
@@ -118,8 +124,8 @@ const createOrder = async (
           deliveryQuartier: parsed.data.deliveryQuartier,
           customerId: customer?.id ?? null,
           subtotal: subTotal,
-          total: subTotal + deliveryZone.fee,
-          deliveryFee: deliveryZone.fee,
+          total: subTotal + deliveryFee,
+          deliveryFee: deliveryFee,
           statusHistory: {
             create: {
               status: OrderStatus.PAIEMENT_EN_ATTENTE,
