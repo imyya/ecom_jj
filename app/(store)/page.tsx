@@ -6,6 +6,8 @@ import { CategoryListItem, listCategories } from "@/features/category/queries";
 import { BestSellersListItem, listBestSellers } from "@/features/product/queries";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
     const categs: CategoryListItem[] = await listCategories()
     const bestSellers:BestSellersListItem[] = await listBestSellers()
