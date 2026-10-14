@@ -6,16 +6,6 @@ import { OrderStatus } from "@/generated/prisma";
 
 import { ListLowStockVariants, ListOutOfStockVariants } from "@/features/stock/queries";
 
-export const PERIODS = { "7d": 7, "30d": 30, "90d": 90 } as const;
-export type Period = keyof typeof PERIODS;
-
-export const isPeriod = (v: unknown): v is Period =>
-  typeof v === "string" && Object.hasOwn(PERIODS, v);
-
-export function periodStart(period: Period) {
-  return startOfDay(subDays(new Date(), PERIODS[period] - 1));
-}
-
 // Ventes par jour, avec les jours sans vente à 0
 export async function getSalesByDay(from: Date) {
   const orders = await prisma.order.findMany({
