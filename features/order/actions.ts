@@ -124,7 +124,7 @@ const createOrder = async (
           deliveryQuartier: parsed.data.deliveryQuartier,
           customerId: customer?.id ?? null,
           subtotal: subTotal,
-          total: subTotal + deliveryFee,
+          total: subTotal,
           deliveryFee: deliveryFee,
           statusHistory: {
             create: {

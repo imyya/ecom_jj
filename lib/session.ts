@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import type { AdminRole } from "@/generated/prisma/client";
 
 export const SESSION_COOKIE = "admin_session";
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours
+const SESSION_DURATION_MS = 4 * 24 * 60 * 60 * 1000; // 7 jours
 
 const secret = process.env.SESSION_SECRET;
 if (!secret) throw new Error("SESSION_SECRET manquant dans .env");
