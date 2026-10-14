@@ -31,19 +31,19 @@ export default function Header() {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/recherche"
+            href="/boutique"
             aria-label="Rechercher"
             className="hidden text-neutral-600 hover:text-neutral-900 sm:block"
           >
             <SearchIcon />
           </Link>
-          <Link
+          {/* <Link
             href="/compte"
             aria-label="Mon compte"
             className="hidden text-neutral-600 hover:text-neutral-900 sm:block"
           >
             <UserIcon />
-          </Link>
+          </Link> */}
           <CartIcon />
           <MobileMenuButton links={NAV_LINKS} />
         </div>
